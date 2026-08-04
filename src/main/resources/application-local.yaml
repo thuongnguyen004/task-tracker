@@ -1,0 +1,38 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/task_tracker
+    username: postgres
+    password: 123456
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    open-in-view: false
+
+    properties:
+      hibernate:
+        format_sql: true
+
+server:
+  servlet:
+    context-path: /api
+
+logging:
+  level:
+    root: WARN
+    org.apatech: INFO
+
+  pattern:
+    console: "%d{HH:mm:ss} %-5level %logger{30} - %msg%n"
+
+app:
+  cors:
+    allowed-origins:
+      - http://localhost:5173
+
+security:
+  jwt:
+    secret-key: 0ZRIxlYX3Jc97kJdIs0jipZcOoHmKXqB67EgrEEHmr49ouPesFXM34jkCBOTjX4a5JXcOcdEmSAEoGgRrfF1O4
+    access-token-expiration: 5m
+    refresh-token-expiration: 7d
