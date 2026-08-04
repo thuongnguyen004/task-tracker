@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/task_tracker
-    username: postgres
-    password: 123456
+    url: jdbc:postgresql://dev-db.company.com:5432/your-database-url
+    username: your-db-username
+    password: your-db-password
 
   jpa:
     hibernate:
@@ -13,6 +13,20 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+  api-docs:
+    enabled: true
+
+  swagger-ui:
+    enabled: true
+    path: /swagger
+
+    operationsSorter: method
+    tagsSorter: alpha
+
+    display-request-duration: true
+
+    try-it-out-enabled: true
 
 server:
   servlet:
@@ -29,10 +43,4 @@ logging:
 app:
   cors:
     allowed-origins:
-      - http://localhost:5173
-
-security:
-  jwt:
-    secret-key: 0ZRIxlYX3Jc97kJdIs0jipZcOoHmKXqB67EgrEEHmr49ouPesFXM34jkCBOTjX4a5JXcOcdEmSAEoGgRrfF1O4
-    access-token-expiration: 5m
-    refresh-token-expiration: 7d
+      - {your-allowed-origin-url}
