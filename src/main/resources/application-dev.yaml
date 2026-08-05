@@ -13,6 +13,8 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        schema_update:
+          unique_constraint_strategy: RECREATE_QUIETLY
 
   api-docs:
     enabled: true

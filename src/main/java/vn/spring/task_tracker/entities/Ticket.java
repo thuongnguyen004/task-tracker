@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -20,20 +21,27 @@ public class Ticket {
     @Column(columnDefinition = "uuid", updatable = false, nullable = false)
     private UUID id;
 
-    @Column(name = "title", length = 150, nullable = false)
+    @Column(length = 150, nullable = false)
     private String title;
 
-    @Column(name = "description")
+    @Column()
     private String description;
 
-    @Column(name = "archived", nullable = false, columnDefinition = "boolean default false")
+    @Column( nullable = false, columnDefinition = "boolean default false")
     private boolean archived;
 
-    @Column(name = "created_at", nullable = false)
+    @Column( nullable = false)
     private Long createdAt;
 
-    @Column(name = "updated_at", nullable = false)
+    @Column(nullable = false)
     private Long updatedAt;
+
+
+    @OneToMany(mappedBy = "ticket")
+    private List<Comment> comments;
+
+    @OneToMany(mappedBy = "ticket")
+    private List<TicketActivity> ticketActivities;
 
     @ManyToOne
     @JoinColumn(name = "priority_id", nullable = false)
@@ -48,6 +56,6 @@ public class Ticket {
     private User assignee;
 
     @ManyToOne
-    @JoinColumn(name = "created_by_id", nullable = false)
+    @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;
 }

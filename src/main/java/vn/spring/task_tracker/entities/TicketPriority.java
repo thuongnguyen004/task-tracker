@@ -6,11 +6,16 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.UUID;
+import java.util.List;
 
 @Entity
 @Data
-@Table(name = "ticket_priorities")
+@Table(
+        name = "ticket_priorities",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uq_ticket_priorities_name", columnNames = "name")
+        }
+)
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -19,12 +24,15 @@ public class TicketPriority {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private short id;
 
-    @Column(name = "name", unique = true, nullable = false)
+    @Column(nullable = false, length = 50)
     private String name;
 
-    @Column(name = "created_at", nullable = false)
+    @Column(nullable = false)
     private Long createdAt;
 
-    @Column(name = "updated_at", nullable = false)
+    @Column(nullable = false)
     private Long updatedAt;
+
+    @OneToMany(mappedBy = "priority", fetch = FetchType.LAZY)
+    private List<Ticket> tickets;
 }

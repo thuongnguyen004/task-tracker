@@ -5,11 +5,17 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.util.List;
 
 @Entity
 @Data
 @Builder
-@Table(name = "activity_event_types")
+@Table(
+        name = "activity_event_types",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uq_activity_event_types_name", columnNames = "name")
+        }
+)
 @AllArgsConstructor
 @NoArgsConstructor
 public class ActivityEventType {
@@ -17,12 +23,15 @@ public class ActivityEventType {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private short id;
 
-    @Column(name = "name", unique = true, nullable = false)
+    @Column(nullable = false, length = 50)
     private String name;
 
-    @Column(name = "created_at", nullable = false)
+    @Column(nullable = false)
     private Long createdAt;
 
-    @Column(name = "updated_at", nullable = false)
+    @Column(nullable = false)
     private Long updatedAt;
+
+    @OneToMany(mappedBy = "eventType", fetch = FetchType.LAZY)
+    private List<TicketActivity> ticketActivities;
 }

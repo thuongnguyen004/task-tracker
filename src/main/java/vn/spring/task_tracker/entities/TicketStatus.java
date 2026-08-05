@@ -6,10 +6,17 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @Entity
 @Builder
-@Table(name = "ticket_statuses")
+@Table(
+        name = "ticket_statuses",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uq_ticket_statuses_name", columnNames = "name")
+        }
+)
 @AllArgsConstructor
 @NoArgsConstructor
 public class TicketStatus {
@@ -17,12 +24,15 @@ public class TicketStatus {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private short id;
 
-    @Column(name = "name", nullable = false, unique = true)
+    @Column(nullable = false, length = 50)
     private String name;
 
-    @Column(name = "created_at", nullable = false)
+    @Column( nullable = false)
     private Long createdAt;
 
-    @Column(name = "updated_at", nullable = false)
+    @Column(nullable = false)
     private Long updatedAt;
+
+    @OneToMany(mappedBy = "status", fetch = FetchType.LAZY)
+    private List<Ticket> tickets;
 }

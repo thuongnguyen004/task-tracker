@@ -1,9 +1,11 @@
 package vn.spring.task_tracker.configs;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+@Component
 @ConfigurationProperties(prefix = "app.cors")
 public class CorsProperties {
 

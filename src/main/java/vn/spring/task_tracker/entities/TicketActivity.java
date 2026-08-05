@@ -19,6 +19,18 @@ public class TicketActivity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column( columnDefinition = "TEXT")
+    private String oldValue;
+
+    @Column( columnDefinition = "TEXT")
+    private String newValue;
+
+    @Column(nullable = false)
+    private Long createdAt;
+
+    @Column(nullable = false)
+    private Long updatedAt;
+
     @ManyToOne
     @JoinColumn(name = "ticket_id", nullable = false)
     private Ticket ticket;
@@ -28,18 +40,6 @@ public class TicketActivity {
     private ActivityEventType eventType;
 
     @ManyToOne
-    @JoinColumn(name = "performed_by_id", nullable = false)
+    @JoinColumn(name = "performed_by", nullable = false)
     private User performedBy;
-
-    @Column(name = "old_value", columnDefinition = "TEXT")
-    private String oldValue;
-
-    @Column(name = "new_value", columnDefinition = "TEXT")
-    private String newValue;
-
-    @Column(name = "created_at", nullable = false)
-    private Long createdAt;
-
-    @Column(name = "updated_at", nullable = false)
-    private Long updatedAt;
 }
