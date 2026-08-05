@@ -44,3 +44,10 @@ app:
   cors:
     allowed-origins:
       - {your-allowed-origin-url}
+
+security:
+  jwt:
+    issuer: task-tracker-api
+    secret-key: ${JWT_SECRET_KEY:>= 64 bytes}
+    access-token-expiration: ${ACCESS_TOKEN_EXPIRATION_TIME}
+    refresh-token-expiration: ${REFRESH_TOKEN_EXPIRATION_TIME}
