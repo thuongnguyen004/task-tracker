@@ -36,18 +36,18 @@ public class Ticket {
     private Long updatedAt;
 
     @ManyToOne
-    @JoinColumn(name = "priority_id", nullable = false, foreignKey = @ForeignKey(name = "fk_ticket_priorities"))
+    @JoinColumn(name = "priority_id", nullable = false)
     private TicketPriority priority;
 
     @ManyToOne
-    @JoinColumn(name = "status_id", nullable = false, foreignKey = @ForeignKey(name = "fk_ticket_status"))
+    @JoinColumn(name = "status_id", nullable = false)
     private TicketStatus status;
 
     @ManyToOne
-    @JoinColumn(name = "assignee_id", foreignKey = @ForeignKey(name = "fk_ticket_assignee"))
+    @JoinColumn(name = "assignee_id")
     private User assignee;
 
     @ManyToOne
-    @JoinColumn(name = "created_by_id", nullable = false, foreignKey = @ForeignKey(name = "fk_ticket_created_by"))
+    @JoinColumn(name = "created_by_id", nullable = false)
     private User createdBy;
 }

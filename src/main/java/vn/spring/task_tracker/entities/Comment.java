@@ -20,11 +20,11 @@ public class Comment {
     private UUID id;
 
     @ManyToOne
-    @JoinColumn(name = "ticket_id", nullable = false, foreignKey = @ForeignKey(name = "fk_comment_ticket"))
+    @JoinColumn(name = "ticket_id", nullable = false)
     private Ticket ticket;
 
     @ManyToOne
-    @JoinColumn(name = "created_by_id", nullable = false, foreignKey = @ForeignKey(name = "fk_comment_user"))
+    @JoinColumn(name = "created_by_id", nullable = false)
     private User createdBy;
 
     @Column(name = "content", nullable = false, columnDefinition = "TEXT")

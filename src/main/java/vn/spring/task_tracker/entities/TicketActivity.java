@@ -20,15 +20,15 @@ public class TicketActivity {
     private UUID id;
 
     @ManyToOne
-    @JoinColumn(name = "ticket_id", nullable = false, foreignKey = @ForeignKey(name = "fk_activity_ticket"))
+    @JoinColumn(name = "ticket_id", nullable = false)
     private Ticket ticket;
 
     @ManyToOne
-    @JoinColumn(name = "event_type_id", nullable = false, foreignKey = @ForeignKey(name = "fk_ticket_activities"))
+    @JoinColumn(name = "event_type_id", nullable = false)
     private ActivityEventType eventType;
 
     @ManyToOne
-    @JoinColumn(name = "performed_by_id", nullable = false, foreignKey = @ForeignKey(name = "fk_activity_user"))
+    @JoinColumn(name = "performed_by_id", nullable = false)
     private User performedBy;
 
     @Column(name = "old_value", columnDefinition = "TEXT")

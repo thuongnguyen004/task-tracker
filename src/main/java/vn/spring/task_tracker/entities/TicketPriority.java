@@ -17,7 +17,7 @@ import java.util.UUID;
 public class TicketPriority {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private short id;
 
     @Column(name = "name", unique = true, nullable = false)
     private String name;

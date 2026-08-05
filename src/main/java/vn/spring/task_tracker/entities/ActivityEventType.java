@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 public class ActivityEventType {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private short id;
 
     @Column(name = "name", unique = true, nullable = false)
     private String name;

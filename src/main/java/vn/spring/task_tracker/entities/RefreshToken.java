@@ -23,7 +23,7 @@ public class RefreshToken {
     private String token;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false, foreignKey = @ForeignKey(name = "fk_refresh_user"))
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @Column(name = "revoked", nullable = false, columnDefinition = "boolean default false")
