@@ -1,7 +1,5 @@
 package vn.spring.task_tracker.controllers;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -27,7 +25,6 @@ import vn.spring.task_tracker.services.AuthService;
 
 @RestController
 @RequestMapping("/auth")
-@Tag(name = "Auth", description = "Authentication APIs")
 @RequiredArgsConstructor
 @Validated
 public class AuthController {
@@ -36,7 +33,6 @@ public class AuthController {
     private final AuthMapper authMapper;
     private final JwtProperties jwtProperties;
 
-    @Operation(summary = "Register a new account")
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<RegisterResponse>> register(
             @Valid
@@ -51,7 +47,6 @@ public class AuthController {
                 .body(ApiResponse.created("Account created successfully", response));
     }
 
-    @Operation(summary = "Login to an account")
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(
             @Valid
@@ -75,7 +70,6 @@ public class AuthController {
                 .body(ApiResponse.success("Account login successfully", loginResult.response()));
     }
 
-    @Operation(summary = "Refresh access token")
     @PostMapping("/refresh")
     public ResponseEntity<ApiResponse<RefreshTokenResponse>> refresh(
             @CookieValue(
@@ -105,7 +99,6 @@ public class AuthController {
                 .body(ApiResponse.success("Access token refreshed successfully", new RefreshTokenResponse(result.accessToken())));
     }
 
-    @Operation(summary = "Logout from an account")
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(
             @CookieValue(
@@ -133,7 +126,6 @@ public class AuthController {
                 .body(ApiResponse.success("Account logout successfully"));
     }
 
-    @Operation(summary = "Get current user profile")
     @GetMapping("/current-user")
     public ResponseEntity<ApiResponse<UserProfileResponse>> getCurrentUser() {
         UserProfileResponse response = authService.getCurrentUser();

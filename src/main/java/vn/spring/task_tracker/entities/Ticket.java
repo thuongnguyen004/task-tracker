@@ -70,4 +70,13 @@ public class Ticket {
     public void preUpdate() {
         updatedAt = System.currentTimeMillis();
     }
+
+    public Ticket(String title, String description, TicketPriority priority, TicketStatus status, User assignee) {
+        this.title = title;
+        this.description = description;
+        this.priority = priority;
+        this.status = status;
+        this.assignee = assignee;
+    }
+
 }
