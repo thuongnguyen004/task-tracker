@@ -34,4 +34,16 @@ public class ActivityEventType {
 
     @OneToMany(mappedBy = "eventType", fetch = FetchType.LAZY)
     private List<TicketActivity> ticketActivities;
+
+    @PrePersist
+    public void prePersist() {
+        long now = System.currentTimeMillis();
+        createdAt = now;
+        updatedAt = now;
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        updatedAt = System.currentTimeMillis();
+    }
 }
