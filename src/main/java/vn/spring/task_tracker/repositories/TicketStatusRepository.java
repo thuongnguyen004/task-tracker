@@ -2,15 +2,12 @@ package vn.spring.task_tracker.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import vn.spring.task_tracker.entities.User;
+import vn.spring.task_tracker.entities.TicketStatus;
 
 import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, UUID> {
-
-    Optional<User> findByEmail(String email);
-
-    boolean existsByEmail(String email);
+public interface TicketStatusRepository extends JpaRepository<TicketStatus, Short> {
+    Optional<TicketStatus> findByName(String name);
 }
