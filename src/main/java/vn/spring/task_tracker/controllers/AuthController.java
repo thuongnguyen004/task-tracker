@@ -1,183 +1,126 @@
 package vn.spring.task_tracker.controllers;
 
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import vn.spring.task_tracker.configs.JwtProperties;
+import vn.spring.task_tracker.mappers.AuthMapper;
 import vn.spring.task_tracker.dtos.requests.LoginRequest;
-import vn.spring.task_tracker.dtos.requests.RefreshTokenRequest;
 import vn.spring.task_tracker.dtos.requests.RegisterRequest;
-import vn.spring.task_tracker.dtos.responses.AuthResponse;
+import vn.spring.task_tracker.dtos.responses.ApiResponse;
+import vn.spring.task_tracker.dtos.responses.LoginResponse;
+import vn.spring.task_tracker.dtos.responses.LoginResult;
+import vn.spring.task_tracker.dtos.responses.RefreshTokenResponse;
+import vn.spring.task_tracker.dtos.responses.RegisterResponse;
+import vn.spring.task_tracker.dtos.responses.UserProfileResponse;
+import vn.spring.task_tracker.entities.User;
+import vn.spring.task_tracker.exceptions.AppException;
 import vn.spring.task_tracker.services.AuthService;
 
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
+@Validated
 public class AuthController {
 
     private final AuthService authService;
-
-    @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(
-        @Valid @RequestBody LoginRequest request,
-        HttpServletResponse response
-    ) {
-        AuthResponse authResponse = authService.login(request);
-
-        setAuthCookies(
-            response,
-            authResponse.getAccessToken(),
-            authResponse.getRefreshToken(),
-            authResponse.getExpiresInMs()
-        );
-
-        return ResponseEntity.ok(authResponse);
-    }
+    private final AuthMapper authMapper;
+    private final JwtProperties jwtProperties;
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(
-        @Valid @RequestBody RegisterRequest request,
-        HttpServletResponse response
+    public ResponseEntity<ApiResponse<RegisterResponse>> register(
+            @Valid
+            @RequestBody
+            RegisterRequest request
     ) {
-        AuthResponse authResponse = authService.register(request);
+        User user = authService.register(request);
+        RegisterResponse response = authMapper.toRegisterResponse(user);
 
-        setAuthCookies(
-            response,
-            authResponse.getAccessToken(),
-            authResponse.getRefreshToken(),
-            authResponse.getExpiresInMs()
-        );
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Account created successfully", response));
+    }
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(authResponse);
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse<LoginResponse>> login(
+            @Valid
+            @RequestBody
+            LoginRequest request
+    ) {
+        LoginResult loginResult = authService.login(request);
+
+        ResponseCookie refreshTokenCookie = ResponseCookie
+                .from("refreshToken", loginResult.refreshToken())
+                .httpOnly(true)
+                .secure(false)
+                .path("/api/auth/")
+                .maxAge(jwtProperties.getRefreshTokenExpiration())
+                .sameSite("Strict")
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
+                .body(ApiResponse.success("Account login successfully", loginResult.response()));
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<AuthResponse> refresh(
-        @RequestBody(required = false) RefreshTokenRequest request,
-        HttpServletRequest httpRequest,
-        HttpServletResponse response
+    public ResponseEntity<ApiResponse<RefreshTokenResponse>> refresh(
+            @CookieValue(
+                    name = "refreshToken",
+                    required = false
+            )
+            String refreshToken
     ) {
-        String token = null;
-
-        if (
-            request != null &&
-            request.getRefreshToken() != null &&
-            !request.getRefreshToken().isBlank()
-        ) {
-            token = request.getRefreshToken();
-        } else if (httpRequest.getCookies() != null) {
-            for (Cookie c : httpRequest.getCookies()) {
-                if ("refreshToken".equals(c.getName())) {
-                    token = c.getValue();
-                    break;
-                }
-            }
+        if (refreshToken == null || refreshToken.isBlank()) {
+            throw new AppException(HttpStatus.UNAUTHORIZED, "Refresh token is missing");
         }
 
-        if (token == null || token.isBlank()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
+        RefreshTokenResponse response = authService.refresh(refreshToken);
 
-        AuthResponse authResponse = authService.refresh(token);
-
-        setAuthCookies(
-            response,
-            authResponse.getAccessToken(),
-            authResponse.getRefreshToken(),
-            authResponse.getExpiresInMs()
-        );
-
-        return ResponseEntity.ok(authResponse);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success("Access token refreshed successfully", response));
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(
-        @RequestBody(required = false) RefreshTokenRequest request,
-        HttpServletRequest httpRequest,
-        HttpServletResponse response
+    public ResponseEntity<ApiResponse<Void>> logout(
+            @CookieValue(
+                    name = "refreshToken",
+                    required = false
+            )
+            String refreshToken
     ) {
-        String token = null;
-
-        if (request != null && request.getRefreshToken() != null) {
-            token = request.getRefreshToken();
-        } else if (httpRequest.getCookies() != null) {
-            for (Cookie c : httpRequest.getCookies()) {
-                if ("refreshToken".equals(c.getName())) {
-                    token = c.getValue();
-                    break;
-                }
-            }
+        if (refreshToken != null && !refreshToken.isBlank()) {
+            authService.logout(refreshToken);
         }
 
-        if (token != null) {
-            authService.logout(token);
-        }
+        ResponseCookie refreshTokenCookie = ResponseCookie
+                .from("refreshToken", "")
+                .httpOnly(true)
+                .secure(false)
+                .path("/api/auth/")
+                .maxAge(0)
+                .sameSite("Strict")
+                .build();
 
-        clearAuthCookies(response);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
+                .body(ApiResponse.success("Account logout successfully"));
     }
 
-    private void setAuthCookies(
-        HttpServletResponse response,
-        String accessToken,
-        String refreshToken,
-        Long expiresInMs
-    ) {
-        long maxAgeSeconds = expiresInMs != null ? expiresInMs / 1000 : 86400;
+    @GetMapping("/current-user")
+    public ResponseEntity<ApiResponse<UserProfileResponse>> getCurrentUser() {
+        UserProfileResponse response = authService.getCurrentUser();
 
-        ResponseCookie accessCookie = ResponseCookie.from(
-            "accessToken",
-            accessToken
-        )
-            .httpOnly(true)
-            .secure(false)
-            .path("/")
-            .maxAge(maxAgeSeconds)
-            .sameSite("Lax")
-            .build();
-
-        ResponseCookie refreshCookie = ResponseCookie.from(
-            "refreshToken",
-            refreshToken
-        )
-            .httpOnly(true)
-            .secure(false)
-            .path("/")
-            .maxAge(604800)
-            .sameSite("Lax")
-            .build();
-
-        response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
-        response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
-    }
-
-    private void clearAuthCookies(HttpServletResponse response) {
-        ResponseCookie accessCookie = ResponseCookie.from("accessToken", "")
-            .httpOnly(true)
-            .secure(false)
-            .path("/")
-            .maxAge(0)
-            .sameSite("Lax")
-            .build();
-
-        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", "")
-            .httpOnly(true)
-            .secure(false)
-            .path("/")
-            .maxAge(0)
-            .sameSite("Lax")
-            .build();
-
-        response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
-        response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success("User retrieved successfully", response));
     }
 }

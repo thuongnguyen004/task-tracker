@@ -11,13 +11,9 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class AuthResponse {
-
-    private String accessToken;
-    private String refreshToken;
-    private String tokenType;
-    private Long expiresInMs;
-    private UUID userId;
-    private String email;
+public class LoginResponse {
+    private UUID id;
     private String username;
+    private String email;
+    private String accessToken;
 }
