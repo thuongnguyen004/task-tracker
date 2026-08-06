@@ -59,4 +59,16 @@ public class RefreshToken {
     public boolean isExpired() {
         return System.currentTimeMillis() > expiresAt;
     }
+
+    @PrePersist
+    public void prePersist() {
+        long now = System.currentTimeMillis();
+        createdAt = now;
+        updatedAt = now;
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        updatedAt = System.currentTimeMillis();
+    }
 }
