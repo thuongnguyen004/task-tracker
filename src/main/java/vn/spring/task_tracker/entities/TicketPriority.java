@@ -35,4 +35,16 @@ public class TicketPriority {
 
     @OneToMany(mappedBy = "priority", fetch = FetchType.LAZY)
     private List<Ticket> tickets;
+
+    @PrePersist
+    public void prePersist() {
+        long now = System.currentTimeMillis();
+        createdAt = now;
+        updatedAt = now;
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        updatedAt = System.currentTimeMillis();
+    }
 }
