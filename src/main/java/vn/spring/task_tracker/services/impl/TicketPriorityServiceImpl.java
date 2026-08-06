@@ -7,6 +7,8 @@ import vn.spring.task_tracker.exceptions.ResourceNotFoundException;
 import vn.spring.task_tracker.repositories.TicketPriorityRepository;
 import vn.spring.task_tracker.services.TicketPriorityService;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class TicketPriorityServiceImpl implements TicketPriorityService {
@@ -15,6 +17,9 @@ public class TicketPriorityServiceImpl implements TicketPriorityService {
 
     public TicketPriority getTicketPriorityById(short id){
 
-        return this.ticketPriorityRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Ticket priority not found"));
+        return ticketPriorityRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Ticket priority not found"));
+    }
+    public List<TicketPriority> getAllTicketPriorities() {
+        return ticketPriorityRepository.findAll();
     }
 }

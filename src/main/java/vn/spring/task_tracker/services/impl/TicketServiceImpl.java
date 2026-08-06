@@ -9,15 +9,17 @@ import vn.spring.task_tracker.entities.TicketStatus;
 import vn.spring.task_tracker.entities.User;
 import vn.spring.task_tracker.exceptions.ResourceNotFoundException;
 import vn.spring.task_tracker.helpers.SecurityHelper;
+import vn.spring.task_tracker.mappers.tickets.TicketUpdateMapper;
 import vn.spring.task_tracker.repositories.*;
 import vn.spring.task_tracker.services.TicketService;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class TicketServiceImpl implements TicketService {
 
     private final TicketRepository ticketRepository;
-    private final TicketActivityRepository ticketActivityRepository;
     private final TicketStatusRepository ticketStatusRepository;
     private final TicketPriorityRepository ticketPriorityRepository;
     private final UserRepository userRepository;
@@ -43,7 +45,7 @@ public class TicketServiceImpl implements TicketService {
 
         }
 
-        TicketStatus status = this.ticketStatusRepository.findByName("To Do")
+        TicketStatus status = this.ticketStatusRepository.findByName("TO DO")
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Default status not found"));
 
@@ -65,4 +67,25 @@ public class TicketServiceImpl implements TicketService {
         return this.ticketRepository.save(ticket);
     }
 
+    public Ticket updateTicket (UUID ticketId, Ticket ticket) {
+        Ticket oldValue = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket not found."));
+
+        ticketPriorityRepository.findById(ticket.getPriority().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket priority not found."));
+
+        ticketStatusRepository.findById(ticket.getStatus().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket status not found."));
+
+        if (ticket.getAssignee() != null) {
+            User assignee = userRepository.findById(ticket.getAssignee().getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found."));
+
+            ticket.setAssignee(assignee);
+        }
+
+        new TicketUpdateMapper().update(oldValue, ticket);
+
+        return ticketRepository.save(oldValue);
+    }
 }

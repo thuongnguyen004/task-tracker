@@ -9,6 +9,7 @@ import vn.spring.task_tracker.repositories.TicketStatusRepository;
 import vn.spring.task_tracker.repositories.UserRepository;
 import vn.spring.task_tracker.services.UserService;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -19,5 +20,9 @@ public class UserServiceImpl implements UserService {
     public User getUserById(UUID id){
 
         return this.userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    }
+
+    public List<User> getAssignees() {
+        return userRepository.findAll();
     }
 }
