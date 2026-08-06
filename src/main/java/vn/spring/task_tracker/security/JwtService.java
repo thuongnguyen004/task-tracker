@@ -86,7 +86,7 @@ public class JwtService {
                 .build();
 
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
-                .subject(user.getEmail())
+                .subject(user.getId().toString())
                 .issuer(jwtProperties.getIssuer())
                 .issueTime(issuedAt)
                 .expirationTime(expiresAt)

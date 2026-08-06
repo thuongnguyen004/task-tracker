@@ -8,6 +8,7 @@ import vn.spring.task_tracker.entities.TicketPriority;
 import vn.spring.task_tracker.entities.TicketStatus;
 import vn.spring.task_tracker.entities.User;
 import vn.spring.task_tracker.exceptions.ResourceNotFoundException;
+import vn.spring.task_tracker.helpers.SecurityHelper;
 import vn.spring.task_tracker.repositories.*;
 import vn.spring.task_tracker.services.TicketService;
 
@@ -20,10 +21,11 @@ public class TicketServiceImpl implements TicketService {
     private final TicketStatusRepository ticketStatusRepository;
     private final TicketPriorityRepository ticketPriorityRepository;
     private final UserRepository userRepository;
+    private final SecurityHelper securityHelper;
 
     public Ticket createTicket(Ticket ticket){
-        User user = this.userRepository.findById(ticket.getCreatedBy().getId()).orElseThrow(()->
-                new ResourceNotFoundException("User not found"));
+
+        User currentUser = this.securityHelper.getCurrentUser();
 
         TicketPriority priority;
 
@@ -58,7 +60,7 @@ public class TicketServiceImpl implements TicketService {
         ticket.setPriority(priority);
         ticket.setStatus(status);
         ticket.setAssignee(assignee);
-        ticket.setCreatedBy(user);
+        ticket.setCreatedBy(currentUser);
 
         return this.ticketRepository.save(ticket);
     }
