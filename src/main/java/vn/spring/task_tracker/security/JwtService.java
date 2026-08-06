@@ -1,64 +1,152 @@
 package vn.spring.task_tracker.security;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
+import com.nimbusds.jose.*;
+import com.nimbusds.jose.crypto.MACSigner;
+import com.nimbusds.jose.crypto.MACVerifier;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import org.springframework.stereotype.Service;
+import vn.spring.task_tracker.configs.JwtProperties;
+import vn.spring.task_tracker.entities.User;
 
-import javax.crypto.SecretKey;
+import java.text.ParseException;
 import java.util.Date;
-import java.util.Map;
-import java.util.function.Function;
+import java.util.UUID;
 
 @Service
 public class JwtService {
 
-    @Value("${security.jwt.secret-key}")
-    private String secret;
+    private static final JWSAlgorithm ALGORITHM = JWSAlgorithm.HS512;
 
-    @Value("${security.jwt.access-token-expiration-ms}")
-    private Long expirationMs;
+    private final JwtProperties jwtProperties;
 
-    public String generateToken(String subject, Map<String, Object> extraClaims) {
-        return Jwts.builder()
-                .claims(extraClaims)
-                .subject(subject)
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expirationMs))
-                .signWith(getSigningKey())
-                .compact();
+    private final byte[] signingKey;
+
+    public JwtService(JwtProperties jwtProperties) {
+        this.jwtProperties = jwtProperties;
+        this.signingKey = jwtProperties.getSecretKeyBytes();
     }
 
-    public String extractUserName(String token) {
-        return extractClaim(token, Claims::getSubject);
+    public String generateAccessToken(User user) {
+        return generateToken(
+                user,
+                jwtProperties.getAccessTokenExpiration().toMillis(),
+                TokenType.ACCESS
+        );
     }
 
-    public <T> T extractClaim(String token, Function<Claims, T> claimResolver) {
-        final Claims claims = extractAllClaims(token);
-        return claimResolver.apply(claims);
+    public String generateRefreshToken(User user) {
+        return generateToken(
+                user,
+                jwtProperties.getRefreshTokenExpiration().toMillis(),
+                TokenType.REFRESH
+        );
     }
 
-    public boolean isTokenValid(String token, String username) {
-        final String extracted = extractUserName(token);
-        return extracted.equals(username) && !isTokenExpired(token);
+    public boolean verifyRefreshToken(String token) {
+        try {
+            parseAndValidateToken(token);
+            return true;
+        } catch (IllegalArgumentException exception) {
+            return false;
+        }
     }
 
-    private boolean isTokenExpired(String token) {
-        return extractClaim(token, Claims::getExpiration).before(new Date());
+    public String extractUserIdFromRefreshToken(String token) {
+        try {
+            JWTClaimsSet claimsSet = parseAndValidateToken(token);
+            return claimsSet.getStringClaim("userId");
+        } catch (ParseException exception) {
+            throw new IllegalArgumentException("Invalid JWT userId", exception);
+        }
     }
 
-    public Claims extractAllClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(getSigningKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+    private String generateToken(
+            User user,
+            long expirationDurationMs,
+            TokenType tokenType
+    ) {
+        if (user == null) {
+            throw new IllegalArgumentException("User must not be null");
+        }
+
+        if (user.getId() == null) {
+            throw new IllegalArgumentException("Cannot generate token for user without ID");
+        }
+
+        if (user.getEmail() == null || user.getEmail().isBlank()) {
+            throw new IllegalArgumentException("Cannot generate token for user without email");
+        }
+
+        Date issuedAt = new Date();
+        Date expiresAt = new Date(issuedAt.getTime() + expirationDurationMs);
+
+        JWSHeader header = new JWSHeader.Builder(ALGORITHM)
+                .type(JOSEObjectType.JWT)
+                .build();
+
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .subject(user.getEmail())
+                .issuer(jwtProperties.getIssuer())
+                .issueTime(issuedAt)
+                .expirationTime(expiresAt)
+                .jwtID(UUID.randomUUID().toString())
+                .claim("userId", user.getId().toString())
+                .claim("tokenType", tokenType.name())
+                .build();
+
+        SignedJWT signedJWT = new SignedJWT(header, claimsSet);
+
+        try {
+            signedJWT.sign(new MACSigner(signingKey));
+            return signedJWT.serialize();
+        } catch (JOSEException exception) {
+            throw new IllegalStateException("Cannot generate JWT token", exception);
+        }
     }
 
-    private SecretKey getSigningKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(secret);
-        return Keys.hmacShaKeyFor(keyBytes);
+    private JWTClaimsSet parseAndValidateToken(String token) {
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(token);
+
+            if (!ALGORITHM.equals(signedJWT.getHeader().getAlgorithm())) {
+                throw new IllegalArgumentException("Invalid JWT algorithm");
+            }
+
+            JWSVerifier verifier = new MACVerifier(signingKey);
+
+            if (!signedJWT.verify(verifier)) {
+                throw new IllegalArgumentException("Invalid JWT signature");
+            }
+
+            JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
+
+            Date expirationTime = claimsSet.getExpirationTime();
+
+            if (expirationTime == null || !expirationTime.after(new Date())) {
+                throw new IllegalArgumentException("JWT token has expired");
+            }
+
+            if (!jwtProperties.getIssuer().equals(claimsSet.getIssuer())) {
+                throw new IllegalArgumentException("Invalid JWT issuer");
+            }
+
+            String subject = claimsSet.getSubject();
+
+            if (subject == null || subject.isBlank()) {
+                throw new IllegalArgumentException("JWT does not contain subject");
+            }
+
+            String tokenType = claimsSet.getStringClaim("tokenType");
+
+            if (!TokenType.REFRESH.name().equals(tokenType)) {
+                throw new IllegalArgumentException("Invalid JWT token type");
+            }
+
+            return claimsSet;
+        } catch (ParseException | JOSEException exception) {
+            throw new IllegalArgumentException("Invalid JWT token", exception);
+        }
     }
+
 }
