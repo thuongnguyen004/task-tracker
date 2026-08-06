@@ -42,4 +42,16 @@ public class TicketActivity {
     @ManyToOne
     @JoinColumn(name = "performed_by", nullable = false)
     private User performedBy;
+
+    @PrePersist
+    public void prePersist() {
+        long now = System.currentTimeMillis();
+        createdAt = now;
+        updatedAt = now;
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        updatedAt = System.currentTimeMillis();
+    }
 }
