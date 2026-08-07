@@ -6,7 +6,6 @@ import java.util.List;
 
 public interface TicketStatusService {
 
-    TicketStatus getTicketPriorityById(short id);
-    TicketStatus getDefaultPriority();
-    List<TicketStatus> getTicketStatuses();
+    TicketStatus getTicketStatusById(short id);
+    List<TicketStatus> getAllTicketStatuses();
 }

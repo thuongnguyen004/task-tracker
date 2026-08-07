@@ -2,8 +2,6 @@ package vn.spring.task_tracker.services.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
-import vn.spring.task_tracker.dtos.responses.AssigneeResponse;
 import vn.spring.task_tracker.entities.TicketStatus;
 import vn.spring.task_tracker.entities.User;
 import vn.spring.task_tracker.exceptions.ResourceNotFoundException;
@@ -24,14 +22,7 @@ public class UserServiceImpl implements UserService {
         return this.userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
-    public List<AssigneeResponse> getAssignees() {
-
-        return userRepository.findAll()
-                .stream()
-                .map(user -> new AssigneeResponse(
-                        user.getId(),
-                        user.getUsername()
-                ))
-                .toList();
+    public List<User> getAssignees() {
+        return userRepository.findAll();
     }
 }

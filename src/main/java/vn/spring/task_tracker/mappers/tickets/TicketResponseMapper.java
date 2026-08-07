@@ -5,19 +5,15 @@ import vn.spring.task_tracker.entities.Ticket;
 
 public class TicketResponseMapper {
     public TicketResponse build(Ticket ticket){
-        String assignee = null;
-
-        if (ticket.getAssignee() != null) {
-            assignee = ticket.getAssignee().getUsername();
-        }
-
         return new TicketResponse(
                 ticket.getId(),
                 ticket.getTitle(),
                 ticket.getDescription(),
                 ticket.getPriority().getName(),
                 ticket.getStatus().getName(),
-                assignee,
+                ticket.getAssignee() != null
+                        ? ticket.getAssignee().getUsername()
+                        : null,
                 ticket.getCreatedBy().getUsername(),
                 ticket.getCreatedAt(),
                 ticket.getUpdatedAt()

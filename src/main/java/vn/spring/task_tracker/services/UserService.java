@@ -9,5 +9,5 @@ import java.util.UUID;
 public interface UserService {
     User getUserById(UUID id);
 
-    List<AssigneeResponse> getAssignees();
+    List<User> getAssignees();
 }

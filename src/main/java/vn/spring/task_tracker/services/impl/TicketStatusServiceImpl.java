@@ -2,6 +2,7 @@ package vn.spring.task_tracker.services.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import vn.spring.task_tracker.entities.TicketPriority;
 import vn.spring.task_tracker.entities.TicketStatus;
 import vn.spring.task_tracker.exceptions.ResourceNotFoundException;
 import vn.spring.task_tracker.repositories.TicketStatusRepository;
@@ -15,17 +16,12 @@ public class TicketStatusServiceImpl implements TicketStatusService {
 
     private final TicketStatusRepository ticketStatusRepository;
 
-    public TicketStatus getTicketPriorityById(short id){
+    public TicketStatus getTicketStatusById(short id){
 
-        return this.ticketStatusRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Ticket status not found"));
+        return ticketStatusRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Ticket status not found"));
     }
 
-    public TicketStatus getDefaultPriority(){
-        return ticketStatusRepository.findByName("To Do").orElseThrow(() ->
-                        new ResourceNotFoundException("Default status not found"));
-    }
-
-    public List<TicketStatus> getTicketStatuses() {
+    public List<TicketStatus> getAllTicketStatuses() {
         return ticketStatusRepository.findAll();
     }
 }

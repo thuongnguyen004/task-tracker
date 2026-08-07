@@ -10,10 +10,13 @@ import vn.spring.task_tracker.entities.TicketStatus;
 import vn.spring.task_tracker.entities.User;
 import vn.spring.task_tracker.exceptions.ResourceNotFoundException;
 import vn.spring.task_tracker.helpers.SecurityHelper;
+import vn.spring.task_tracker.mappers.tickets.TicketUpdateMapper;
 import vn.spring.task_tracker.repositories.*;
 import vn.spring.task_tracker.services.TicketPriorityService;
 import vn.spring.task_tracker.services.TicketService;
 import vn.spring.task_tracker.services.TicketStatusService;
+
+import java.util.UUID;
 
 import java.util.UUID;
 
@@ -22,6 +25,8 @@ import java.util.UUID;
 public class TicketServiceImpl implements TicketService {
 
     private final TicketRepository ticketRepository;
+    private final TicketStatusRepository ticketStatusRepository;
+    private final TicketPriorityRepository ticketPriorityRepository;
     private final UserRepository userRepository;
     private final SecurityHelper securityHelper;
     private final TicketPriorityService ticketPriorityService;
@@ -31,9 +36,11 @@ public class TicketServiceImpl implements TicketService {
 
         User currentUser = securityHelper.getCurrentUser();
 
-        TicketPriority ticketPriority = ticketPriorityService.getOrDefaultPriority(ticket.getPriority());
+        TicketPriority ticketPriority = ticketPriorityRepository.findById(ticket.getPriority().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket priority not found."));
 
-        TicketStatus ticketStatus = ticketStatusService.getDefaultPriority();
+        TicketStatus ticketStatus = ticketStatusRepository.findById(ticket.getStatus().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket status not found."));
 
         User assignee = null;
 
@@ -58,4 +65,25 @@ public class TicketServiceImpl implements TicketService {
                 new ResourceNotFoundException("Ticket not found"));
     }
 
+    public Ticket updateTicket (UUID ticketId, Ticket ticket) {
+        Ticket oldValue = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket not found."));
+
+        ticketPriorityRepository.findById(ticket.getPriority().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket priority not found."));
+
+        ticketStatusRepository.findById(ticket.getStatus().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket status not found."));
+
+        if (ticket.getAssignee() != null) {
+            User assignee = userRepository.findById(ticket.getAssignee().getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found."));
+
+            ticket.setAssignee(assignee);
+        }
+
+        new TicketUpdateMapper().update(oldValue, ticket);
+
+        return ticketRepository.save(oldValue);
+    }
 }

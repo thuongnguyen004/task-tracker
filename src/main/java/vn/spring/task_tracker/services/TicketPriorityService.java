@@ -7,6 +7,5 @@ import java.util.List;
 
 public interface TicketPriorityService {
     TicketPriority getTicketPriorityById(short id);
-    TicketPriority getOrDefaultPriority(TicketPriority priority);
-    List<TicketPriority> getTicketPriorities();
+    List<TicketPriority> getAllTicketPriorities();
 }

@@ -3,27 +3,24 @@ package vn.spring.task_tracker.controllers;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.spring.task_tracker.dtos.requests.tickets.TicketCreateRequest;
+import vn.spring.task_tracker.dtos.requests.tickets.TicketUpdateRequest;
 import vn.spring.task_tracker.dtos.responses.ApiResponse;
-import vn.spring.task_tracker.dtos.responses.AssigneeResponse;
 import vn.spring.task_tracker.dtos.responses.tickets.TicketResponse;
 import vn.spring.task_tracker.entities.Ticket;
-import vn.spring.task_tracker.entities.TicketPriority;
-import vn.spring.task_tracker.entities.TicketStatus;
-import vn.spring.task_tracker.entities.User;
 import vn.spring.task_tracker.helpers.SecurityHelper;
 import vn.spring.task_tracker.mappers.tickets.TicketCreateMapper;
 import vn.spring.task_tracker.mappers.tickets.TicketResponseMapper;
+import vn.spring.task_tracker.mappers.tickets.TicketUpdateMapper;
 import vn.spring.task_tracker.services.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/tickets")
 public class TicketController {
 
     private final TicketService ticketService;
@@ -34,7 +31,9 @@ public class TicketController {
     private final AuthService authService;
     private final SecurityHelper securityHelper;
 
-    @PostMapping("/tickets")
+
+
+    @PostMapping
     public ResponseEntity<ApiResponse<TicketResponse>> createTicket(@Valid @RequestBody TicketCreateRequest ticketCreateRequest)
     {
         TicketCreateMapper ticketMapper =  new TicketCreateMapper();
@@ -61,35 +60,13 @@ public class TicketController {
 
         return ResponseEntity.ok(ApiResponse.success("Get ticket", ticketResponse));
     }
+    @PutMapping("/{ticketId}")
+    public ResponseEntity<ApiResponse<TicketResponse>> updateTicket(@PathVariable UUID ticketId,@Valid @RequestBody TicketUpdateRequest ticketUpdateRequest) {
+        Ticket ticket = new TicketUpdateMapper().build(ticketUpdateRequest);
 
-    @GetMapping("/ticket-priorities")
-    public ResponseEntity<ApiResponse<List<TicketPriority>>> getTicketPriorities() {
+        Ticket savedTicket = ticketService.updateTicket(ticketId, ticket);
 
-        List<TicketPriority> priorities =
-                ticketPriorityService.getTicketPriorities();
-
-        return ResponseEntity.ok(
-                ApiResponse.success("Get ticket priorities successfully", priorities)
-        );
-    }
-
-    @GetMapping("/ticket-statuses")
-    public ResponseEntity<ApiResponse<List<TicketStatus>>> getTicketStatuses() {
-
-        List<TicketStatus> statuses =
-                ticketStatusService.getTicketStatuses();
-
-        return ResponseEntity.ok(
-                ApiResponse.success("Get ticket statuses successfully", statuses)
-        );
-    }
-
-    @GetMapping("/assignees")
-    public ResponseEntity<ApiResponse<List<AssigneeResponse>>> getUsers() {
-
-        List<AssigneeResponse> assigneeResponseList = userService.getAssignees();
-
-        return ResponseEntity.ok(
-                ApiResponse.success("Get Assignee", assigneeResponseList));
+        TicketResponse ticketResponse = new TicketResponseMapper().build(savedTicket);
+        return ResponseEntity.ok(ApiResponse.success("Update ticket successfully", ticketResponse));
     }
 }
