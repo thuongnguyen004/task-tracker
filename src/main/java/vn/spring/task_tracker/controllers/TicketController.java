@@ -5,11 +5,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import vn.spring.task_tracker.dtos.requests.tickets.TicketCreateRequest;
 import vn.spring.task_tracker.dtos.responses.ApiResponse;
+import vn.spring.task_tracker.dtos.responses.AssigneeResponse;
 import vn.spring.task_tracker.dtos.responses.tickets.TicketResponse;
 import vn.spring.task_tracker.entities.Ticket;
 import vn.spring.task_tracker.entities.TicketPriority;
@@ -19,6 +18,9 @@ import vn.spring.task_tracker.helpers.SecurityHelper;
 import vn.spring.task_tracker.mappers.tickets.TicketCreateMapper;
 import vn.spring.task_tracker.mappers.tickets.TicketResponseMapper;
 import vn.spring.task_tracker.services.*;
+
+import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -35,25 +37,59 @@ public class TicketController {
     @PostMapping("/tickets")
     public ResponseEntity<ApiResponse<TicketResponse>> createTicket(@Valid @RequestBody TicketCreateRequest ticketCreateRequest)
     {
-
-        User currentUser = this.securityHelper.getCurrentUser();
-
         TicketCreateMapper ticketMapper =  new TicketCreateMapper();
         TicketResponseMapper ticketResponseMapper = new TicketResponseMapper();
 
-        TicketPriority ticketPriority = this.ticketPriorityService.getTicketPriorityById(ticketCreateRequest.getPriorityId());
-        TicketStatus ticketStatus = this.ticketStatusService.getTicketPriorityById(ticketCreateRequest.getStatusId());
-        User user = this.userService.getUserById(ticketCreateRequest.getAssigneeId());
+        Ticket ticket = ticketMapper.build(ticketCreateRequest);
 
-        Ticket ticket = ticketMapper.build(ticketCreateRequest, ticketPriority, ticketStatus, user);
-
-        Ticket newTicket = this.ticketService.createTicket(ticket);
+        Ticket newTicket = ticketService.createTicket(ticket);
 
         TicketResponse ticketResponse = ticketResponseMapper.build(newTicket);
 
-
-
-        return ResponseEntity.ok(ApiResponse.created("Create ticket successfully", ticketResponse));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.created("Create ticket successfully", ticketResponse));
     }
 
+    @GetMapping("/tickets/{id}")
+    public ResponseEntity<ApiResponse<TicketResponse>> getActiveTicketById(@PathVariable("id") UUID id){
+
+        TicketResponseMapper ticketResponseMapper = new TicketResponseMapper();
+
+        Ticket ticket = this.ticketService.getActiveTicketById(id);
+
+        TicketResponse ticketResponse = ticketResponseMapper.build(ticket);
+
+        return ResponseEntity.ok(ApiResponse.success("Get ticket", ticketResponse));
+    }
+
+    @GetMapping("/ticket-priorities")
+    public ResponseEntity<ApiResponse<List<TicketPriority>>> getTicketPriorities() {
+
+        List<TicketPriority> priorities =
+                ticketPriorityService.getTicketPriorities();
+
+        return ResponseEntity.ok(
+                ApiResponse.success("Get ticket priorities successfully", priorities)
+        );
+    }
+
+    @GetMapping("/ticket-statuses")
+    public ResponseEntity<ApiResponse<List<TicketStatus>>> getTicketStatuses() {
+
+        List<TicketStatus> statuses =
+                ticketStatusService.getTicketStatuses();
+
+        return ResponseEntity.ok(
+                ApiResponse.success("Get ticket statuses successfully", statuses)
+        );
+    }
+
+    @GetMapping("/assignees")
+    public ResponseEntity<ApiResponse<List<AssigneeResponse>>> getUsers() {
+
+        List<AssigneeResponse> assigneeResponseList = userService.getAssignees();
+
+        return ResponseEntity.ok(
+                ApiResponse.success("Get Assignee", assigneeResponseList));
+    }
 }
