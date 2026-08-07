@@ -1,8 +1,6 @@
 package vn.spring.task_tracker.services.impl;
 
 import lombok.RequiredArgsConstructor;
-
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import vn.spring.task_tracker.entities.Ticket;
 import vn.spring.task_tracker.entities.TicketPriority;
@@ -15,6 +13,7 @@ import vn.spring.task_tracker.services.TicketPriorityService;
 import vn.spring.task_tracker.services.TicketService;
 import vn.spring.task_tracker.services.TicketStatusService;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -27,8 +26,7 @@ public class TicketServiceImpl implements TicketService {
     private final TicketPriorityService ticketPriorityService;
     private final TicketStatusService ticketStatusService;
 
-    public Ticket createTicket(Ticket ticket){
-
+    public Ticket createTicket(Ticket ticket) {
         User currentUser = securityHelper.getCurrentUser();
 
         TicketPriority ticketPriority = ticketPriorityService.getOrDefaultPriority(ticket.getPriority());
@@ -43,8 +41,6 @@ public class TicketServiceImpl implements TicketService {
                             new ResourceNotFoundException("Assignee not found"));
         }
 
-        ticket.setAssignee(assignee);
-
         ticket.setPriority(ticketPriority);
         ticket.setStatus(ticketStatus);
         ticket.setAssignee(assignee);
@@ -53,9 +49,12 @@ public class TicketServiceImpl implements TicketService {
         return this.ticketRepository.save(ticket);
     }
 
-    public Ticket getActiveTicketById(UUID id){
-        return  this.ticketRepository.findByIdAndArchivedFalse(id).orElseThrow(() ->
+    public Ticket getActiveTicketById(UUID id) {
+        return this.ticketRepository.findByIdAndArchivedFalse(id).orElseThrow(() ->
                 new ResourceNotFoundException("Ticket not found"));
     }
 
+    public List<Ticket> getAllActiveTickets() {
+        return this.ticketRepository.findByArchivedFalse();
+    }
 }

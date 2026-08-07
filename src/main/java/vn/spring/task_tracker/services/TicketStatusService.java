@@ -8,5 +8,6 @@ public interface TicketStatusService {
 
     TicketStatus getTicketPriorityById(short id);
     TicketStatus getDefaultPriority();
+    TicketStatus getOrDefaultStatus(TicketStatus status);
     List<TicketStatus> getTicketStatuses();
 }

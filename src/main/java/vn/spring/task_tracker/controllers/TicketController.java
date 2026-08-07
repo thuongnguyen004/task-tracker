@@ -3,7 +3,6 @@ package vn.spring.task_tracker.controllers;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.spring.task_tracker.dtos.requests.tickets.TicketCreateRequest;
@@ -13,7 +12,6 @@ import vn.spring.task_tracker.dtos.responses.tickets.TicketResponse;
 import vn.spring.task_tracker.entities.Ticket;
 import vn.spring.task_tracker.entities.TicketPriority;
 import vn.spring.task_tracker.entities.TicketStatus;
-import vn.spring.task_tracker.entities.User;
 import vn.spring.task_tracker.helpers.SecurityHelper;
 import vn.spring.task_tracker.mappers.tickets.TicketCreateMapper;
 import vn.spring.task_tracker.mappers.tickets.TicketResponseMapper;
@@ -35,9 +33,8 @@ public class TicketController {
     private final SecurityHelper securityHelper;
 
     @PostMapping("/tickets")
-    public ResponseEntity<ApiResponse<TicketResponse>> createTicket(@Valid @RequestBody TicketCreateRequest ticketCreateRequest)
-    {
-        TicketCreateMapper ticketMapper =  new TicketCreateMapper();
+    public ResponseEntity<ApiResponse<TicketResponse>> createTicket(@Valid @RequestBody TicketCreateRequest ticketCreateRequest) {
+        TicketCreateMapper ticketMapper = new TicketCreateMapper();
         TicketResponseMapper ticketResponseMapper = new TicketResponseMapper();
 
         Ticket ticket = ticketMapper.build(ticketCreateRequest);
@@ -50,8 +47,21 @@ public class TicketController {
                 .body(ApiResponse.created("Create ticket successfully", ticketResponse));
     }
 
+    @GetMapping("/tickets")
+    public ResponseEntity<ApiResponse<List<TicketResponse>>> getAllActiveTickets() {
+        TicketResponseMapper ticketResponseMapper = new TicketResponseMapper();
+
+        List<Ticket> tickets = ticketService.getAllActiveTickets();
+
+        List<TicketResponse> ticketResponses = tickets.stream()
+                .map(ticketResponseMapper::build)
+                .toList();
+
+        return ResponseEntity.ok(ApiResponse.success("Get active tickets successfully", ticketResponses));
+    }
+
     @GetMapping("/tickets/{id}")
-    public ResponseEntity<ApiResponse<TicketResponse>> getActiveTicketById(@PathVariable("id") UUID id){
+    public ResponseEntity<ApiResponse<TicketResponse>> getActiveTicketById(@PathVariable("id") UUID id) {
 
         TicketResponseMapper ticketResponseMapper = new TicketResponseMapper();
 
