@@ -21,13 +21,25 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import vn.spring.task_tracker.security.TokenType;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import java.util.List;
 
 @Configuration
 public class SecurityConfig {
+
+    private final JwtProperties jwtProperties;
+    private final AppProperties appProperties;
+
+    public SecurityConfig(JwtProperties jwtProperties, AppProperties appProperties) {
+        this.jwtProperties = jwtProperties;
+        this.appProperties = appProperties;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
@@ -42,7 +54,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/refresh").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/auth/logout").permitAll()
                         .requestMatchers(
                                 "/swagger",
                                 "/swagger/**",
@@ -59,9 +70,21 @@ public class SecurityConfig {
     }
 
     @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(appProperties.getCors().getAllowedOrigins());
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
+    @Bean
     public JwtDecoder jwtDecoder(JwtProperties jwtProperties) {
         byte[] signingKey = jwtProperties.getSecretKeyBytes();
-
         SecretKey key = new SecretKeySpec(signingKey, "HmacSHA512");
 
         NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder
@@ -70,7 +93,6 @@ public class SecurityConfig {
                 .build();
 
         jwtDecoder.setJwtValidator(jwtValidator(jwtProperties));
-
         return jwtDecoder;
     }
 
