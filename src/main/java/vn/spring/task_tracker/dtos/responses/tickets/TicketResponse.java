@@ -18,9 +18,15 @@ public class TicketResponse {
 
     private String description;
 
+    private short priorityId;
+
     private String priority;
 
+    private short statusId;
+
     private String status;
+
+    private UUID assigneeId;
 
     private String assignee;
 

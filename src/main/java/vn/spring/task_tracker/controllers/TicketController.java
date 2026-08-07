@@ -49,7 +49,7 @@ public class TicketController {
                 .body(ApiResponse.created("Create ticket successfully", ticketResponse));
     }
 
-    @GetMapping("/tickets/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<TicketResponse>> getActiveTicketById(@PathVariable("id") UUID id){
 
         TicketResponseMapper ticketResponseMapper = new TicketResponseMapper();

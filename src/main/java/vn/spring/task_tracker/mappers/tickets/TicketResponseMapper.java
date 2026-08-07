@@ -9,8 +9,13 @@ public class TicketResponseMapper {
                 ticket.getId(),
                 ticket.getTitle(),
                 ticket.getDescription(),
+                ticket.getPriority().getId(),
                 ticket.getPriority().getName(),
+                ticket.getStatus().getId(),
                 ticket.getStatus().getName(),
+                ticket.getAssignee() != null
+                        ? ticket.getAssignee().getId()
+                        : null,
                 ticket.getAssignee() != null
                         ? ticket.getAssignee().getUsername()
                         : null,
