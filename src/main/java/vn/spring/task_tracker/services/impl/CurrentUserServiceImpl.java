@@ -20,6 +20,9 @@ public class CurrentUserServiceImpl implements CurrentUserService {
         }
 
         String userId = jwt.getClaimAsString("userId");
+
+        assert userId != null;
+
         return UUID.fromString(userId);
     }
 }

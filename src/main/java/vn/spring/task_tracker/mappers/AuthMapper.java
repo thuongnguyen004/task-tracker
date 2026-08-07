@@ -31,6 +31,12 @@ public class AuthMapper {
     }
 
     public UserProfileResponse toUserProfileResponse(User user) {
-        return new UserProfileResponse(user.getId(), user.getUsername(), user.getEmail());
+        return new UserProfileResponse(
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getCreatedAt(),
+                user.getUpdatedAt()
+        );
     }
 }
