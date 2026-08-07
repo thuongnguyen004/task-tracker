@@ -13,6 +13,7 @@ public class AuthMapper {
     public User toEntity(RegisterRequest request) {
         User user = new User();
         user.setUsername(request.getUsername());
+        user.setFullName(request.getFullName());
         user.setEmail(request.getEmail());
         return user;
     }
