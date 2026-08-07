@@ -52,13 +52,10 @@ public class AuthServiceImpl implements AuthService {
             throw new AppException(HttpStatus.CONFLICT, "Username already exists");
         }
 
-        if (!request.getPassword().equals(request.getConfirmPassword())) {
-            throw new AppException(HttpStatus.BAD_REQUEST, "Passwords do not match");
-        }
-
         User user = authMapper.toEntity(request);
         user.setEmail(email);
         user.setUsername(request.getUsername().trim());
+        user.setFullName(request.getFullName());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
         return userRepository.save(user);

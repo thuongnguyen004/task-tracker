@@ -4,6 +4,7 @@ import java.util.UUID;
 
 public record UserProfileResponse(
         UUID id,
+        String fullName,
         String username,
         String email,
         Long createdAt,

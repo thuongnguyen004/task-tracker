@@ -15,6 +15,10 @@ public class RegisterRequest {
     @Size(min = 3, max = 30, message = "Username must be between 3 and 30 characters")
     private String username;
 
+    @NotBlank
+    @Size(min = 2, max = 100, message = "Full name must be between 3 and 100 characters")
+    private String fullName;
+
     @NotBlank(message = "Email cannot be blank")
     @Email(message = "Email must be valid")
     private String email;
@@ -22,7 +26,4 @@ public class RegisterRequest {
     @NotBlank(message = "Password cannot be blank")
     @Size(min = 8, message = "Password must be at least 8 characters")
     private String password;
-
-    @NotBlank(message = "Confirm password cannot be blank")
-    private String confirmPassword;
 }
