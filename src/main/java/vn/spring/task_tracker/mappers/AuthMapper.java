@@ -18,7 +18,7 @@ public class AuthMapper {
     }
 
     public RegisterResponse toRegisterResponse(User user) {
-        return new RegisterResponse(user.getId(), user.getUsername(), user.getEmail());
+        return new RegisterResponse(user.getId(), user.getUsername(), user.getFullName(), user.getEmail());
     }
 
     public LoginResponse toLoginResponse(User user, String accessToken) {
