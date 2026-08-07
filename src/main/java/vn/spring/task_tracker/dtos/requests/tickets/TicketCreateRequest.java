@@ -21,9 +21,9 @@ public class TicketCreateRequest {
     @Size(max = 5000)
     private String description;
 
-    private short priorityId;
+    private Short priorityId;
 
-    private short statusId;
+    private Short statusId;
 
     private UUID assigneeId;
 }
