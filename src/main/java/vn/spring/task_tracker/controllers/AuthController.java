@@ -16,6 +16,7 @@ import vn.spring.task_tracker.dtos.responses.ApiResponse;
 import vn.spring.task_tracker.dtos.responses.LoginResponse;
 import vn.spring.task_tracker.dtos.responses.LoginResult;
 import vn.spring.task_tracker.dtos.responses.RefreshTokenResponse;
+import vn.spring.task_tracker.dtos.responses.RefreshTokenResult;
 import vn.spring.task_tracker.dtos.responses.RegisterResponse;
 import vn.spring.task_tracker.dtos.responses.UserProfileResponse;
 import vn.spring.task_tracker.entities.User;
@@ -43,7 +44,7 @@ public class AuthController {
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Account created successfully", response));
+                .body(ApiResponse.created("Account created successfully", response));
     }
 
     @PostMapping("/login")
@@ -81,11 +82,21 @@ public class AuthController {
             throw new AppException(HttpStatus.UNAUTHORIZED, "Refresh token is missing");
         }
 
-        RefreshTokenResponse response = authService.refresh(refreshToken);
+        RefreshTokenResult result = authService.refresh(refreshToken);
+
+        ResponseCookie refreshTokenCookie = ResponseCookie
+                .from("refreshToken", result.refreshToken())
+                .httpOnly(true)
+                .secure(false)
+                .path("/api/auth/")
+                .maxAge(jwtProperties.getRefreshTokenExpiration())
+                .sameSite("Strict")
+                .build();
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(ApiResponse.success("Access token refreshed successfully", response));
+                .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
+                .body(ApiResponse.success("Access token refreshed successfully", new RefreshTokenResponse(result.accessToken())));
     }
 
     @PostMapping("/logout")

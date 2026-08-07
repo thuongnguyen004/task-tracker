@@ -1,6 +1,7 @@
 package vn.spring.task_tracker.security;
 
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NullMarked;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -11,6 +12,7 @@ import vn.spring.task_tracker.repositories.UserRepository;
 import java.util.List;
 
 @Service
+@NullMarked
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
 

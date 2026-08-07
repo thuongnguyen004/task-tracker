@@ -13,7 +13,7 @@ import vn.spring.task_tracker.dtos.requests.LoginRequest;
 import vn.spring.task_tracker.dtos.requests.RegisterRequest;
 import vn.spring.task_tracker.dtos.responses.LoginResponse;
 import vn.spring.task_tracker.dtos.responses.LoginResult;
-import vn.spring.task_tracker.dtos.responses.RefreshTokenResponse;
+import vn.spring.task_tracker.dtos.responses.RefreshTokenResult;
 import vn.spring.task_tracker.dtos.responses.UserProfileResponse;
 import vn.spring.task_tracker.entities.RefreshToken;
 import vn.spring.task_tracker.entities.User;
@@ -42,8 +42,9 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public User register(RegisterRequest request) {
+        String email = normalizeEmail(request.getEmail());
 
-        if (userRepository.existsByEmailIgnoreCase(request.getEmail())) {
+        if (userRepository.existsByEmailIgnoreCase(email)) {
             throw new AppException(HttpStatus.CONFLICT, "Email already exists");
         }
 
@@ -51,9 +52,12 @@ public class AuthServiceImpl implements AuthService {
             throw new AppException(HttpStatus.CONFLICT, "Username already exists");
         }
 
+        if (!request.getPassword().equals(request.getConfirmPassword())) {
+            throw new AppException(HttpStatus.BAD_REQUEST, "Passwords do not match");
+        }
 
         User user = authMapper.toEntity(request);
-        user.setEmail(request.getEmail());
+        user.setEmail(email);
         user.setUsername(request.getUsername().trim());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
@@ -63,11 +67,12 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public LoginResult login(LoginRequest request) {
+        String email = normalizeEmail(request.getEmail());
 
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            request.getEmail(),
+                            email,
                             request.getPassword()
                     )
             );
@@ -75,7 +80,7 @@ public class AuthServiceImpl implements AuthService {
             throw new AppException(HttpStatus.UNAUTHORIZED, "Invalid email or password");
         }
 
-        User user = findByEmail(request.getEmail());
+        User user = findByEmail(email);
 
         String accessToken = jwtService.generateAccessToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
@@ -88,22 +93,22 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public RefreshTokenResponse refresh(String refreshToken) {
+    @Transactional
+    public RefreshTokenResult refresh(String refreshToken) {
         if (!jwtService.verifyRefreshToken(refreshToken)) {
             throw new AppException(HttpStatus.UNAUTHORIZED, "Invalid refresh token");
         }
 
         RefreshToken storedRefreshToken = refreshTokenService.getValidToken(refreshToken);
 
-        String tokenUserId = jwtService.extractUserIdFromRefreshToken(refreshToken);
+        User user = storedRefreshToken.getUser();
 
-        if (!storedRefreshToken.getUser().getId().toString().equals(tokenUserId)) {
-            throw new AppException(HttpStatus.UNAUTHORIZED, "Invalid refresh token");
-        }
+        String accessToken = jwtService.generateAccessToken(user);
+        String newRefreshToken = jwtService.generateRefreshToken(user);
 
-        String accessToken = jwtService.generateAccessToken(storedRefreshToken.getUser());
+        refreshTokenService.save(newRefreshToken, user);
 
-        return new RefreshTokenResponse(accessToken);
+        return new RefreshTokenResult(accessToken, newRefreshToken);
     }
 
     @Override
@@ -125,5 +130,9 @@ public class AuthServiceImpl implements AuthService {
     private User findByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(HttpStatus.UNAUTHORIZED, "Invalid email or password"));
+    }
+
+    private String normalizeEmail(String email) {
+        return email == null ? null : email.trim().toLowerCase();
     }
 }

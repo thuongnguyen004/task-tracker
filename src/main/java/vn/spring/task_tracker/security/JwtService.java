@@ -53,12 +53,8 @@ public class JwtService {
     }
 
     public String extractUserIdFromRefreshToken(String token) {
-        try {
-            JWTClaimsSet claimsSet = parseAndValidateToken(token);
-            return claimsSet.getStringClaim("userId");
-        } catch (ParseException exception) {
-            throw new IllegalArgumentException("Invalid JWT userId", exception);
-        }
+        JWTClaimsSet claimsSet = parseAndValidateToken(token);
+        return claimsSet.getSubject();
     }
 
     private String generateToken(
@@ -91,8 +87,8 @@ public class JwtService {
                 .issueTime(issuedAt)
                 .expirationTime(expiresAt)
                 .jwtID(UUID.randomUUID().toString())
-                .claim("userId", user.getId().toString())
                 .claim("tokenType", tokenType.name())
+                .claim("userId", user.getId().toString())
                 .build();
 
         SignedJWT signedJWT = new SignedJWT(header, claimsSet);
