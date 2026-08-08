@@ -16,6 +16,7 @@ import vn.spring.task_tracker.mappers.tickets.TicketResponseMapper;
 import vn.spring.task_tracker.mappers.tickets.TicketUpdateMapper;
 import vn.spring.task_tracker.services.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -24,14 +25,6 @@ import java.util.UUID;
 public class TicketController {
 
     private final TicketService ticketService;
-    private final TicketPriorityService ticketPriorityService;
-    private final TicketStatusService ticketStatusService;
-    private final UserService userService;
-    private final CurrentUserService currentUserService;
-    private final AuthService authService;
-    private final SecurityHelper securityHelper;
-
-
 
     @PostMapping
     public ResponseEntity<ApiResponse<TicketResponse>> createTicket(@Valid @RequestBody TicketCreateRequest ticketCreateRequest)
@@ -60,6 +53,16 @@ public class TicketController {
 
         return ResponseEntity.ok(ApiResponse.success("Get ticket", ticketResponse));
     }
+
+    @GetMapping()
+    public ResponseEntity<ApiResponse<List<TicketResponse>>> getAllActiveTickets() {
+        List<Ticket> ticket = ticketService.getAllActiveTickets();
+
+        List<TicketResponse> ticketResponse = new TicketResponseMapper().buildList(ticket);
+
+        return ResponseEntity.ok(ApiResponse.success("Get active tickets successfully", ticketResponse));
+    }
+
     @PutMapping("/{ticketId}")
     public ResponseEntity<ApiResponse<TicketResponse>> updateTicket(@PathVariable UUID ticketId,@Valid @RequestBody TicketUpdateRequest ticketUpdateRequest) {
         Ticket ticket = new TicketUpdateMapper().build(ticketUpdateRequest);
@@ -67,6 +70,7 @@ public class TicketController {
         Ticket savedTicket = ticketService.updateTicket(ticketId, ticket);
 
         TicketResponse ticketResponse = new TicketResponseMapper().build(savedTicket);
+
         return ResponseEntity.ok(ApiResponse.success("Update ticket successfully", ticketResponse));
     }
 }

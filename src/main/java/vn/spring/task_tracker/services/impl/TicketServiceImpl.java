@@ -13,6 +13,7 @@ import vn.spring.task_tracker.mappers.tickets.TicketUpdateMapper;
 import vn.spring.task_tracker.repositories.*;
 import vn.spring.task_tracker.services.TicketService;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -56,6 +57,10 @@ public class TicketServiceImpl implements TicketService {
     public Ticket getActiveTicketById(UUID id){
         return  this.ticketRepository.findByIdAndArchivedFalse(id).orElseThrow(() ->
                 new ResourceNotFoundException("Ticket not found"));
+    }
+
+    public List<Ticket> getAllActiveTickets() {
+        return ticketRepository.findByArchivedFalse();
     }
 
     public Ticket updateTicket (UUID ticketId, Ticket ticket) {

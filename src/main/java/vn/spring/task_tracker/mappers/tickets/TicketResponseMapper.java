@@ -3,6 +3,8 @@ package vn.spring.task_tracker.mappers.tickets;
 import vn.spring.task_tracker.dtos.responses.tickets.TicketResponse;
 import vn.spring.task_tracker.entities.Ticket;
 
+import java.util.List;
+
 public class TicketResponseMapper {
     public TicketResponse build(Ticket ticket){
         return new TicketResponse(
@@ -23,5 +25,11 @@ public class TicketResponseMapper {
                 ticket.getCreatedAt(),
                 ticket.getUpdatedAt()
         );
+    }
+
+    public List<TicketResponse> buildList(List<Ticket> tickets) {
+        return tickets.stream()
+                .map(this::build)
+                .toList();
     }
 }
