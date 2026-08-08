@@ -15,10 +15,6 @@ public class TicketPriorityServiceImpl implements TicketPriorityService {
 
     private final TicketPriorityRepository ticketPriorityRepository;
 
-    public TicketPriority getTicketPriorityById(short id){
-
-        return ticketPriorityRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Ticket priority not found"));
-    }
     public List<TicketPriority> getAllTicketPriorities() {
         return ticketPriorityRepository.findAll();
     }

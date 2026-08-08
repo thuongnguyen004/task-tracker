@@ -6,6 +6,5 @@ import vn.spring.task_tracker.entities.TicketPriority;
 import java.util.List;
 
 public interface TicketPriorityService {
-    TicketPriority getTicketPriorityById(short id);
     List<TicketPriority> getAllTicketPriorities();
 }

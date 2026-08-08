@@ -16,11 +16,6 @@ public class TicketStatusServiceImpl implements TicketStatusService {
 
     private final TicketStatusRepository ticketStatusRepository;
 
-    public TicketStatus getTicketStatusById(short id){
-
-        return ticketStatusRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Ticket status not found"));
-    }
-
     public List<TicketStatus> getAllTicketStatuses() {
         return ticketStatusRepository.findAll();
     }

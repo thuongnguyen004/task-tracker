@@ -2,7 +2,6 @@ package vn.spring.task_tracker.services.impl;
 
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import vn.spring.task_tracker.entities.Ticket;
 import vn.spring.task_tracker.entities.TicketPriority;
@@ -12,11 +11,7 @@ import vn.spring.task_tracker.exceptions.ResourceNotFoundException;
 import vn.spring.task_tracker.helpers.SecurityHelper;
 import vn.spring.task_tracker.mappers.tickets.TicketUpdateMapper;
 import vn.spring.task_tracker.repositories.*;
-import vn.spring.task_tracker.services.TicketPriorityService;
 import vn.spring.task_tracker.services.TicketService;
-import vn.spring.task_tracker.services.TicketStatusService;
-
-import java.util.UUID;
 
 import java.util.UUID;
 
@@ -29,8 +24,6 @@ public class TicketServiceImpl implements TicketService {
     private final TicketPriorityRepository ticketPriorityRepository;
     private final UserRepository userRepository;
     private final SecurityHelper securityHelper;
-    private final TicketPriorityService ticketPriorityService;
-    private final TicketStatusService ticketStatusService;
 
     public Ticket createTicket(Ticket ticket){
 
@@ -66,7 +59,7 @@ public class TicketServiceImpl implements TicketService {
     }
 
     public Ticket updateTicket (UUID ticketId, Ticket ticket) {
-        Ticket oldValue = ticketRepository.findById(ticketId)
+        Ticket oldValue = ticketRepository.findByIdAndArchivedFalse(ticketId)
                 .orElseThrow(() -> new ResourceNotFoundException("Ticket not found."));
 
         ticketPriorityRepository.findById(ticket.getPriority().getId())

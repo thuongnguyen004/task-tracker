@@ -6,6 +6,5 @@ import java.util.List;
 
 public interface TicketStatusService {
 
-    TicketStatus getTicketStatusById(short id);
     List<TicketStatus> getAllTicketStatuses();
 }
