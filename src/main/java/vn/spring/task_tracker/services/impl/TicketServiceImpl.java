@@ -82,4 +82,15 @@ public class TicketServiceImpl implements TicketService {
 
         return ticketRepository.save(oldValue);
     }
+
+    public void changeStatusTicket (UUID ticketId, short statusId) {
+        Ticket ticket = ticketRepository.findByIdAndArchivedFalse(ticketId)
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket not found."));
+
+        TicketStatus ticketStatus = ticketStatusRepository.findById(statusId)
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket status not found."));
+        ticket.setStatus(ticketStatus);
+
+        ticketRepository.save(ticket);
+    }
 }

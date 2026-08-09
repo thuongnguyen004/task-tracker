@@ -10,7 +10,6 @@ import vn.spring.task_tracker.dtos.requests.tickets.TicketUpdateRequest;
 import vn.spring.task_tracker.dtos.responses.ApiResponse;
 import vn.spring.task_tracker.dtos.responses.tickets.TicketResponse;
 import vn.spring.task_tracker.entities.Ticket;
-import vn.spring.task_tracker.helpers.SecurityHelper;
 import vn.spring.task_tracker.mappers.tickets.TicketCreateMapper;
 import vn.spring.task_tracker.mappers.tickets.TicketResponseMapper;
 import vn.spring.task_tracker.mappers.tickets.TicketUpdateMapper;
@@ -72,5 +71,12 @@ public class TicketController {
         TicketResponse ticketResponse = new TicketResponseMapper().build(savedTicket);
 
         return ResponseEntity.ok(ApiResponse.success("Update ticket successfully", ticketResponse));
+    }
+
+    @PatchMapping("/{ticketId}/status/{statusId}")
+    public ResponseEntity<Void> changeStatusTicket(@PathVariable UUID ticketId, @PathVariable short statusId) {
+       ticketService.changeStatusTicket(ticketId, statusId);
+
+       return ResponseEntity.noContent().build();
     }
 }

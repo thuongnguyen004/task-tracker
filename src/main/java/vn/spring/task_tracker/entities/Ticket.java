@@ -79,4 +79,8 @@ public class Ticket {
         this.assignee = assignee;
     }
 
+    public Ticket(TicketStatus status) {
+        this.status = status;
+    }
+
 }

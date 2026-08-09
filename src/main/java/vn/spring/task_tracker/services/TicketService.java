@@ -12,5 +12,7 @@ public interface TicketService {
 
     Ticket updateTicket(UUID ticketId, Ticket ticket);
 
+    void changeStatusTicket(UUID ticketId, short statusId);
+
     List<Ticket> getAllActiveTickets();
 }
