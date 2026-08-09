@@ -1,7 +1,6 @@
 package vn.spring.task_tracker.services.impl;
 
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.stereotype.Service;
 import vn.spring.task_tracker.entities.Ticket;
 import vn.spring.task_tracker.entities.TicketPriority;
