@@ -74,10 +74,8 @@ public class TicketServiceImpl implements TicketService {
                 .orElseThrow(() -> new ResourceNotFoundException("Ticket status not found."));
 
         if (ticket.getAssignee() != null) {
-            User assignee = userRepository.findById(ticket.getAssignee().getId())
+            userRepository.findById(ticket.getAssignee().getId())
                     .orElseThrow(() -> new ResourceNotFoundException("User not found."));
-
-            ticket.setAssignee(assignee);
         }
 
         new TicketUpdateMapper().update(oldValue, ticket);
