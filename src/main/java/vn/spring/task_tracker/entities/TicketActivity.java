@@ -54,4 +54,12 @@ public class TicketActivity {
     public void preUpdate() {
         updatedAt = System.currentTimeMillis();
     }
+
+    public TicketActivity(String oldValue, String newValue, Ticket ticket, ActivityEventType eventType, User performedBy) {
+        this.oldValue = oldValue;
+        this.newValue = newValue;
+        this.ticket = ticket;
+        this.eventType = eventType;
+        this.performedBy = performedBy;
+    }
 }
