@@ -2,6 +2,7 @@ package vn.spring.task_tracker.services.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import vn.spring.task_tracker.constants.ActivityEventTypeMessage;
 import vn.spring.task_tracker.entities.ActivityEventType;
 import vn.spring.task_tracker.entities.Ticket;
 import vn.spring.task_tracker.entities.TicketActivity;
@@ -9,7 +10,7 @@ import vn.spring.task_tracker.entities.User;
 import vn.spring.task_tracker.enums.ActivityEventCode;
 import vn.spring.task_tracker.exceptions.ResourceNotFoundException;
 import vn.spring.task_tracker.helpers.SecurityHelper;
-import vn.spring.task_tracker.mappers.ticket_activity.TicketActivityCreateMapper;
+import vn.spring.task_tracker.mappers.TicketActivityCreateMapper;
 import vn.spring.task_tracker.repositories.ActivityEventTypeRepository;
 import vn.spring.task_tracker.repositories.TicketActivityRepository;
 import vn.spring.task_tracker.services.TicketActivityService;
@@ -33,7 +34,6 @@ public class TicketActivityServiceImpl implements TicketActivityService {
 
     @Override
     public void createTicketActivity(Ticket oldTicket, Ticket newTicket, User performedBy) {
-        // Title
         createIfChanged(
                 oldTicket,
                 ActivityEventCode.TITLE_CHANGED,
@@ -42,7 +42,6 @@ public class TicketActivityServiceImpl implements TicketActivityService {
                 newTicket.getTitle()
         );
 
-        // Description
         createIfChanged(
                 oldTicket,
                 ActivityEventCode.DESCRIPTION_CHANGED,
@@ -51,7 +50,6 @@ public class TicketActivityServiceImpl implements TicketActivityService {
                 newTicket.getDescription()
         );
 
-        // Status
         createIfChanged(
                 oldTicket,
                 ActivityEventCode.STATUS_CHANGED,
@@ -62,7 +60,6 @@ public class TicketActivityServiceImpl implements TicketActivityService {
                 newTicket.getStatus().getName()
         );
 
-        // Priority
         createIfChanged(
                 oldTicket,
                 ActivityEventCode.PRIORITY_CHANGED,
@@ -73,7 +70,6 @@ public class TicketActivityServiceImpl implements TicketActivityService {
                 newTicket.getPriority().getName()
         );
 
-        // Assignee
         UUID oldAssigneeId = oldTicket.getAssignee() == null
                 ? null
                 : oldTicket.getAssignee().getId();
@@ -101,7 +97,6 @@ public class TicketActivityServiceImpl implements TicketActivityService {
         );
     }
 
-    // Dùng cho title, description
     private void createIfChanged(
             Ticket ticket,
             ActivityEventCode eventCode,
@@ -122,7 +117,6 @@ public class TicketActivityServiceImpl implements TicketActivityService {
         );
     }
 
-    // Dùng cho status, priority, assignee
     private void createIfChanged(
             Ticket ticket,
             ActivityEventCode eventCode,
@@ -156,7 +150,7 @@ public class TicketActivityServiceImpl implements TicketActivityService {
                 activityEventTypeRepository.findByCode(eventCode)
                         .orElseThrow(() ->
                                 new ResourceNotFoundException(
-                                        "Activity event type not found."
+                                        ActivityEventTypeMessage.NOT_FOUND
                                 )
                         );
 
