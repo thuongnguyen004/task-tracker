@@ -1,6 +1,6 @@
-package vn.spring.task_tracker.mappers.tickets;
+package vn.spring.task_tracker.mappers;
 
-import vn.spring.task_tracker.dtos.requests.tickets.TicketUpdateRequest;
+import vn.spring.task_tracker.dtos.requests.TicketUpdateRequest;
 import vn.spring.task_tracker.entities.Ticket;
 import vn.spring.task_tracker.entities.TicketPriority;
 import vn.spring.task_tracker.entities.TicketStatus;
@@ -25,6 +25,7 @@ public class TicketUpdateMapper {
         return new Ticket(
                 request.getTitle(),
                 request.getDescription(),
+
                 priority,
                 status,
                 assignee

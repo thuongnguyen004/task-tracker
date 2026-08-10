@@ -52,7 +52,7 @@ public class Ticket {
     private TicketStatus status;
 
     @ManyToOne
-    @JoinColumn(name = "assignee_id", nullable = true)
+    @JoinColumn(name = "assignee_id")
     private User assignee;
 
     @ManyToOne

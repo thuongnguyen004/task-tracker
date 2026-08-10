@@ -1,4 +1,4 @@
-package vn.spring.task_tracker.dtos.responses.tickets;
+package vn.spring.task_tracker.dtos.responses;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

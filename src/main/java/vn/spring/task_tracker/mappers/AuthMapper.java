@@ -12,14 +12,21 @@ public class AuthMapper {
 
     public User toEntity(RegisterRequest request) {
         User user = new User();
+
         user.setUsername(request.getUsername());
         user.setFullName(request.getFullName());
         user.setEmail(request.getEmail());
+
         return user;
     }
 
     public RegisterResponse toRegisterResponse(User user) {
-        return new RegisterResponse(user.getId(), user.getUsername(), user.getFullName(), user.getEmail());
+        return new RegisterResponse(
+                user.getId(),
+                user.getUsername(),
+                user.getFullName(),
+                user.getEmail()
+        );
     }
 
     public LoginResponse toLoginResponse(User user, String accessToken) {
