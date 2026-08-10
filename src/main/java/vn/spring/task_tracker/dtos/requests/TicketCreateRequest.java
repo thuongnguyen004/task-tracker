@@ -1,4 +1,4 @@
-package vn.spring.task_tracker.dtos.requests.tickets;
+package vn.spring.task_tracker.dtos.requests;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

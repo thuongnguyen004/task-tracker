@@ -1,6 +1,6 @@
-package vn.spring.task_tracker.mappers.tickets;
+package vn.spring.task_tracker.mappers;
 
-import vn.spring.task_tracker.dtos.responses.tickets.TicketResponse;
+import vn.spring.task_tracker.dtos.responses.TicketResponse;
 import vn.spring.task_tracker.entities.Ticket;
 
 import java.util.List;
