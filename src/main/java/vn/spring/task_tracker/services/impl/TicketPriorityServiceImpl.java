@@ -2,6 +2,7 @@ package vn.spring.task_tracker.services.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import vn.spring.task_tracker.constants.TicketPriorityMessage;
 import vn.spring.task_tracker.entities.TicketPriority;
 import vn.spring.task_tracker.exceptions.ResourceNotFoundException;
 import vn.spring.task_tracker.repositories.TicketPriorityRepository;
@@ -14,6 +15,23 @@ import java.util.List;
 public class TicketPriorityServiceImpl implements TicketPriorityService {
 
     private final TicketPriorityRepository ticketPriorityRepository;
+
+    public TicketPriority getTicketPriorityById(short id) {
+
+        return this.ticketPriorityRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(TicketPriorityMessage.NOT_FOUND));
+    }
+
+    public TicketPriority getOrDefaultPriority(TicketPriority priority) {
+
+        if (priority == null) {
+            return ticketPriorityRepository.findByName("Medium")
+                    .orElseThrow(() ->
+                            new ResourceNotFoundException(TicketPriorityMessage.DEFAULT_NOT_FOUND));
+        }
+
+        return getTicketPriorityById(priority.getId());
+    }
 
     public List<TicketPriority> getAllTicketPriorities() {
         return ticketPriorityRepository.findAll();

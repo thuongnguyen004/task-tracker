@@ -2,13 +2,13 @@ package vn.spring.task_tracker.exceptions;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import vn.spring.task_tracker.dtos.responses.ErrorResponse;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -26,7 +26,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex) {
-        String message = ex.getBindingResult().getFieldError().getDefaultMessage();
+        String message = Objects.requireNonNull(ex.getBindingResult().getFieldError()).getDefaultMessage();
         ErrorResponse error = new ErrorResponse(
                 LocalDateTime.now(),
                 HttpStatus.BAD_REQUEST.value(),

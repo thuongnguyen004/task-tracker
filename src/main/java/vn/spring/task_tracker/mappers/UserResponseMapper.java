@@ -1,6 +1,6 @@
-package vn.spring.task_tracker.mappers.users;
+package vn.spring.task_tracker.mappers;
 
-import vn.spring.task_tracker.dtos.responses.users.UserResponse;
+import vn.spring.task_tracker.dtos.responses.UserResponse;
 import vn.spring.task_tracker.entities.User;
 
 import java.util.List;

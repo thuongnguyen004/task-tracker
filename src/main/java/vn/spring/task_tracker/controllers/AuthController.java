@@ -9,18 +9,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import vn.spring.task_tracker.configs.JwtProperties;
-import vn.spring.task_tracker.mappers.AuthMapper;
+import vn.spring.task_tracker.constants.AuthMessage;
 import vn.spring.task_tracker.dtos.requests.LoginRequest;
 import vn.spring.task_tracker.dtos.requests.RegisterRequest;
-import vn.spring.task_tracker.dtos.responses.ApiResponse;
-import vn.spring.task_tracker.dtos.responses.LoginResponse;
-import vn.spring.task_tracker.dtos.responses.LoginResult;
-import vn.spring.task_tracker.dtos.responses.RefreshTokenResponse;
-import vn.spring.task_tracker.dtos.responses.RefreshTokenResult;
-import vn.spring.task_tracker.dtos.responses.RegisterResponse;
-import vn.spring.task_tracker.dtos.responses.UserProfileResponse;
+import vn.spring.task_tracker.dtos.responses.*;
 import vn.spring.task_tracker.entities.User;
 import vn.spring.task_tracker.exceptions.AppException;
+import vn.spring.task_tracker.mappers.AuthMapper;
 import vn.spring.task_tracker.services.AuthService;
 
 @RestController
@@ -44,7 +39,7 @@ public class AuthController {
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(ApiResponse.created("Account created successfully", response));
+                .body(ApiResponse.created(AuthMessage.REGISTER_SUCCESS, response));
     }
 
     @PostMapping("/login")
@@ -67,7 +62,7 @@ public class AuthController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
-                .body(ApiResponse.success("Account login successfully", loginResult.response()));
+                .body(ApiResponse.success(AuthMessage.LOGIN_SUCCESS, loginResult.response()));
     }
 
     @PostMapping("/refresh")
@@ -79,7 +74,7 @@ public class AuthController {
             String refreshToken
     ) {
         if (refreshToken == null || refreshToken.isBlank()) {
-            throw new AppException(HttpStatus.UNAUTHORIZED, "Refresh token is missing");
+            throw new AppException(HttpStatus.UNAUTHORIZED, AuthMessage.REFRESH_TOKEN_MISSING);
         }
 
         RefreshTokenResult result = authService.refresh(refreshToken);
@@ -96,7 +91,8 @@ public class AuthController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
-                .body(ApiResponse.success("Access token refreshed successfully", new RefreshTokenResponse(result.accessToken())));
+                .body(ApiResponse
+                        .success(AuthMessage.REFRESH_SUCCESS, new RefreshTokenResponse(result.accessToken())));
     }
 
     @PostMapping("/logout")
@@ -123,7 +119,7 @@ public class AuthController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
-                .body(ApiResponse.success("Account logout successfully"));
+                .body(ApiResponse.success(AuthMessage.LOGOUT_SUCCESS));
     }
 
     @GetMapping("/current-user")
@@ -132,6 +128,6 @@ public class AuthController {
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(ApiResponse.success("User retrieved successfully", response));
+                .body(ApiResponse.success(AuthMessage.GET_CURRENT_USER_SUCCESS, response));
     }
 }
