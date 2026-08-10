@@ -1,4 +1,4 @@
-package vn.spring.task_tracker.mappers.ticket_activity;
+package vn.spring.task_tracker.mappers;
 
 import vn.spring.task_tracker.entities.ActivityEventType;
 import vn.spring.task_tracker.entities.Ticket;

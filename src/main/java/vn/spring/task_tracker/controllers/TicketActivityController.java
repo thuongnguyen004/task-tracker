@@ -7,9 +7,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import vn.spring.task_tracker.dtos.responses.ApiResponse;
-import vn.spring.task_tracker.dtos.responses.ticket_activity.TicketActivityResponse;
+import vn.spring.task_tracker.dtos.responses.TicketActivityResponse;
 import vn.spring.task_tracker.entities.TicketActivity;
-import vn.spring.task_tracker.mappers.ticket_activity.TicketActivityResponseMapper;
+import vn.spring.task_tracker.mappers.TicketActivityResponseMapper;
 import vn.spring.task_tracker.services.TicketActivityService;
 
 import java.util.List;
