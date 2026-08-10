@@ -10,6 +10,8 @@ import vn.spring.task_tracker.dtos.requests.tickets.TicketUpdateRequest;
 import vn.spring.task_tracker.dtos.responses.ApiResponse;
 import vn.spring.task_tracker.dtos.responses.tickets.TicketResponse;
 import vn.spring.task_tracker.entities.Ticket;
+import vn.spring.task_tracker.entities.TicketActivity;
+import vn.spring.task_tracker.mappers.ticket_activity.TicketActivityCreateMapper;
 import vn.spring.task_tracker.mappers.tickets.TicketCreateMapper;
 import vn.spring.task_tracker.mappers.tickets.TicketResponseMapper;
 import vn.spring.task_tracker.mappers.tickets.TicketUpdateMapper;
