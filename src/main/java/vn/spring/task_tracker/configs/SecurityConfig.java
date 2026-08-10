@@ -33,11 +33,9 @@ import java.util.List;
 @Configuration
 public class SecurityConfig {
 
-    private final JwtProperties jwtProperties;
     private final AppProperties appProperties;
 
-    public SecurityConfig(JwtProperties jwtProperties, AppProperties appProperties) {
-        this.jwtProperties = jwtProperties;
+    public SecurityConfig(AppProperties appProperties) {
         this.appProperties = appProperties;
     }
 

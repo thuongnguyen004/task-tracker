@@ -1,6 +1,6 @@
-package vn.spring.task_tracker.mappers.ticket_priority;
+package vn.spring.task_tracker.mappers;
 
-import vn.spring.task_tracker.dtos.responses.ticket_priority.TicketPriorityResponse;
+import vn.spring.task_tracker.dtos.responses.TicketPriorityResponse;
 import vn.spring.task_tracker.entities.TicketPriority;
 
 import java.util.List;

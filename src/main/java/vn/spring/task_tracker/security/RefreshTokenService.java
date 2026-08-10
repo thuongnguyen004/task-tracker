@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.spring.task_tracker.configs.JwtProperties;
+import vn.spring.task_tracker.constants.AuthMessage;
 import vn.spring.task_tracker.entities.RefreshToken;
 import vn.spring.task_tracker.entities.User;
 import vn.spring.task_tracker.exceptions.AppException;
@@ -28,6 +29,7 @@ public class RefreshTokenService {
         revokeAllUserTokens(user);
 
         long now = System.currentTimeMillis();
+
         RefreshToken refreshToken = RefreshToken.builder()
                 .token(hash(token))
                 .user(user)
@@ -45,11 +47,12 @@ public class RefreshTokenService {
 
         if (Boolean.TRUE.equals(refreshToken.getRevoked())) {
             revokeAllUserTokens(refreshToken.getUser());
-            throw new AppException(HttpStatus.UNAUTHORIZED, "Invalid refresh token");
+
+            throw new AppException(HttpStatus.UNAUTHORIZED, AuthMessage.INVALID_REFRESH_TOKEN);
         }
 
         if (refreshToken.getExpiredAt() < System.currentTimeMillis()) {
-            throw new AppException(HttpStatus.UNAUTHORIZED, "Invalid refresh token");
+            throw new AppException(HttpStatus.UNAUTHORIZED, AuthMessage.INVALID_REFRESH_TOKEN);
         }
 
         return refreshToken;
@@ -60,6 +63,7 @@ public class RefreshTokenService {
         refreshTokenRepository.findByToken(hash(token))
                 .ifPresent(refreshToken -> {
                     refreshToken.setRevoked(true);
+
                     refreshTokenRepository.save(refreshToken);
                 });
     }
@@ -67,19 +71,23 @@ public class RefreshTokenService {
     @Transactional
     public void revokeAllUserTokens(User user) {
         List<RefreshToken> tokens = refreshTokenRepository.findAllByUserId(user.getId());
+
         tokens.forEach(token -> token.setRevoked(true));
+
         refreshTokenRepository.saveAll(tokens);
     }
 
     private RefreshToken findRefreshToken(String token) {
         return refreshTokenRepository.findByToken(token)
-                .orElseThrow(() -> new AppException(HttpStatus.UNAUTHORIZED, "Invalid refresh token"));
+                .orElseThrow(() -> new AppException(HttpStatus.UNAUTHORIZED, AuthMessage.INVALID_REFRESH_TOKEN));
     }
 
     private String hash(String token) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
+
             byte[] hash = digest.digest(token.getBytes(StandardCharsets.UTF_8));
+
             return Base64.getEncoder().encodeToString(hash);
         } catch (Exception e) {
             throw new IllegalStateException("Cannot hash refresh token", e);

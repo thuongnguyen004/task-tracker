@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import vn.spring.task_tracker.mappers.tickets.TicketCreateMapper;
+import vn.spring.task_tracker.mappers.TicketCreateMapper;
 import vn.spring.task_tracker.repositories.TicketRepository;
 import vn.spring.task_tracker.services.impl.TicketServiceImpl;
 
