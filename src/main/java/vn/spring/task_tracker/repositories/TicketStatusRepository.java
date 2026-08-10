@@ -10,4 +10,6 @@ import java.util.UUID;
 @Repository
 public interface TicketStatusRepository extends JpaRepository<TicketStatus, Short> {
     Optional<TicketStatus> findByName(String name);
+
+    boolean existsByName(String name);
 }
