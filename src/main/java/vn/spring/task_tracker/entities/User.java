@@ -1,24 +1,24 @@
 package vn.spring.task_tracker.entities;
 
 import jakarta.persistence.*;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-import java.util.UUID;
-
 @Data
 @Entity
-@Table(name = "users", uniqueConstraints = {
+@Table(
+    name = "users",
+    uniqueConstraints = {
         @UniqueConstraint(name = "uq_users_username", columnNames = "username"),
-        @UniqueConstraint(name = "uq_users_email", columnNames = "email")
-})
-@Builder
+        @UniqueConstraint(name = "uq_users_email", columnNames = "email"),
+    }
+)
 @AllArgsConstructor
 @NoArgsConstructor
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -40,21 +40,6 @@ public class User {
 
     @Column(nullable = false)
     private Long updatedAt;
-
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private List<RefreshToken> refreshTokens;
-
-    @OneToMany(mappedBy = "assignee", fetch = FetchType.LAZY)
-    private List<Ticket> assignedTickets;
-
-    @OneToMany(mappedBy = "createdBy", fetch = FetchType.LAZY)
-    private List<Ticket> createdTickets;
-
-    @OneToMany(mappedBy = "createdBy", fetch = FetchType.LAZY)
-    private List<Comment> comments;
-
-    @OneToMany(mappedBy = "performedBy", fetch = FetchType.LAZY)
-    private List<TicketActivity> ticketActivities;
 
     @PrePersist
     public void prePersist() {

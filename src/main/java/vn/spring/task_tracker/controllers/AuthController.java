@@ -22,7 +22,7 @@ import vn.spring.task_tracker.dtos.responses.RefreshTokenResult;
 import vn.spring.task_tracker.dtos.responses.RegisterResponse;
 import vn.spring.task_tracker.dtos.responses.UserProfileResponse;
 import vn.spring.task_tracker.entities.User;
-import vn.spring.task_tracker.exceptions.AppException;
+import vn.spring.task_tracker.exceptions.InvalidRefreshTokenException;
 import vn.spring.task_tracker.services.AuthService;
 
 @RestController
@@ -85,7 +85,7 @@ public class AuthController {
             String refreshToken
     ) {
         if (refreshToken == null || refreshToken.isBlank()) {
-            throw new AppException(HttpStatus.UNAUTHORIZED, "Refresh token is missing");
+            throw new InvalidRefreshTokenException("Refresh token is missing");
         }
 
         RefreshTokenResult result = authService.refresh(refreshToken);

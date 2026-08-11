@@ -1,17 +1,14 @@
 package vn.spring.task_tracker.entities;
 
 import jakarta.persistence.*;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.UUID;
 
 @Entity
 @Data
 @Table(name = "refresh_tokens")
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class RefreshToken {

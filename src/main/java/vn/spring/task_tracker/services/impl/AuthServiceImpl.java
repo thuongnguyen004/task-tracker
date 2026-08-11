@@ -1,7 +1,6 @@
 package vn.spring.task_tracker.services.impl;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
@@ -17,7 +16,11 @@ import vn.spring.task_tracker.dtos.responses.RefreshTokenResult;
 import vn.spring.task_tracker.dtos.responses.UserProfileResponse;
 import vn.spring.task_tracker.entities.RefreshToken;
 import vn.spring.task_tracker.entities.User;
-import vn.spring.task_tracker.exceptions.AppException;
+import vn.spring.task_tracker.exceptions.EmailAlreadyExistsException;
+import vn.spring.task_tracker.exceptions.InvalidCredentialsException;
+import vn.spring.task_tracker.exceptions.InvalidRefreshTokenException;
+import vn.spring.task_tracker.exceptions.ResourceNotFoundException;
+import vn.spring.task_tracker.exceptions.UsernameAlreadyExistsException;
 import vn.spring.task_tracker.repositories.UserRepository;
 import vn.spring.task_tracker.security.JwtService;
 import vn.spring.task_tracker.security.RefreshTokenService;
@@ -45,11 +48,11 @@ public class AuthServiceImpl implements AuthService {
         String email = normalizeEmail(request.getEmail());
 
         if (userRepository.existsByEmailIgnoreCase(email)) {
-            throw new AppException(HttpStatus.CONFLICT, "Email already exists");
+            throw new EmailAlreadyExistsException("Email already exists");
         }
 
         if (userRepository.existsByUsernameIgnoreCase(request.getUsername().trim())) {
-            throw new AppException(HttpStatus.CONFLICT, "Username already exists");
+            throw new UsernameAlreadyExistsException("Username already exists");
         }
 
         User user = authMapper.toEntity(request);
@@ -74,7 +77,7 @@ public class AuthServiceImpl implements AuthService {
                     )
             );
         } catch (AuthenticationException exception) {
-            throw new AppException(HttpStatus.UNAUTHORIZED, "Invalid email or password");
+            throw new InvalidCredentialsException("Invalid email or password");
         }
 
         User user = findByEmail(email);
@@ -93,7 +96,7 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public RefreshTokenResult refresh(String refreshToken) {
         if (!jwtService.verifyRefreshToken(refreshToken)) {
-            throw new AppException(HttpStatus.UNAUTHORIZED, "Invalid refresh token");
+            throw new InvalidRefreshTokenException("Invalid refresh token");
         }
 
         RefreshToken storedRefreshToken = refreshTokenService.getValidToken(refreshToken);
@@ -119,14 +122,14 @@ public class AuthServiceImpl implements AuthService {
         UUID userId = currentUserService.getCurrentUserId();
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         return authMapper.toUserProfileResponse(user);
     }
 
     private User findByEmail(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new AppException(HttpStatus.UNAUTHORIZED, "Invalid email or password"));
+                .orElseThrow(() -> new InvalidCredentialsException("Invalid email or password"));
     }
 
     private String normalizeEmail(String email) {

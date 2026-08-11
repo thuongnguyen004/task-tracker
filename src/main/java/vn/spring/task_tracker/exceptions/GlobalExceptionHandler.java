@@ -36,6 +36,28 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(ex.getStatus()).body(error);
     }
 
+    @ExceptionHandler({EmailAlreadyExistsException.class, UsernameAlreadyExistsException.class})
+    public ResponseEntity<ErrorResponse> handleAlreadyExists(RuntimeException ex) {
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.CONFLICT.value(),
+                HttpStatus.CONFLICT.getReasonPhrase(),
+                ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler({InvalidCredentialsException.class, InvalidRefreshTokenException.class})
+    public ResponseEntity<ErrorResponse> handleUnauthorized(RuntimeException ex) {
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.UNAUTHORIZED.value(),
+                HttpStatus.UNAUTHORIZED.getReasonPhrase(),
+                ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex) {
         String message = Objects.requireNonNull(ex.getBindingResult().getFieldError()).getDefaultMessage();

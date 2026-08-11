@@ -1,13 +1,12 @@
 package vn.spring.task_tracker.security;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.spring.task_tracker.configs.JwtProperties;
 import vn.spring.task_tracker.entities.RefreshToken;
 import vn.spring.task_tracker.entities.User;
-import vn.spring.task_tracker.exceptions.AppException;
+import vn.spring.task_tracker.exceptions.InvalidRefreshTokenException;
 import vn.spring.task_tracker.repositories.RefreshTokenRepository;
 
 import java.nio.charset.StandardCharsets;
@@ -28,14 +27,13 @@ public class RefreshTokenService {
         revokeAllUserTokens(user);
 
         long now = System.currentTimeMillis();
-        RefreshToken refreshToken = RefreshToken.builder()
-                .token(hash(token))
-                .user(user)
-                .revoked(false)
-                .expiredAt(now + jwtProperties.getRefreshTokenExpiration().toMillis())
-                .createdAt(now)
-                .updatedAt(now)
-                .build();
+        RefreshToken refreshToken = new RefreshToken();
+        refreshToken.setToken(hash(token));
+        refreshToken.setUser(user);
+        refreshToken.setRevoked(false);
+        refreshToken.setExpiredAt(now + jwtProperties.getRefreshTokenExpiration().toMillis());
+        refreshToken.setCreatedAt(now);
+        refreshToken.setUpdatedAt(now);
 
         refreshTokenRepository.save(refreshToken);
     }
@@ -45,11 +43,11 @@ public class RefreshTokenService {
 
         if (Boolean.TRUE.equals(refreshToken.getRevoked())) {
             revokeAllUserTokens(refreshToken.getUser());
-            throw new AppException(HttpStatus.UNAUTHORIZED, "Invalid refresh token");
+            throw new InvalidRefreshTokenException("Invalid refresh token");
         }
 
         if (refreshToken.getExpiredAt() < System.currentTimeMillis()) {
-            throw new AppException(HttpStatus.UNAUTHORIZED, "Invalid refresh token");
+            throw new InvalidRefreshTokenException("Invalid refresh token");
         }
 
         return refreshToken;
@@ -73,7 +71,7 @@ public class RefreshTokenService {
 
     private RefreshToken findRefreshToken(String token) {
         return refreshTokenRepository.findByToken(token)
-                .orElseThrow(() -> new AppException(HttpStatus.UNAUTHORIZED, "Invalid refresh token"));
+                .orElseThrow(() -> new InvalidRefreshTokenException("Invalid refresh token"));
     }
 
     private String hash(String token) {
