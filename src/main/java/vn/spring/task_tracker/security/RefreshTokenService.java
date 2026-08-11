@@ -6,7 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import vn.spring.task_tracker.configs.JwtProperties;
 import vn.spring.task_tracker.entities.RefreshToken;
 import vn.spring.task_tracker.entities.User;
-import vn.spring.task_tracker.exceptions.InvalidRefreshTokenException;
+import vn.spring.task_tracker.exceptions.InvalidException;
 import vn.spring.task_tracker.repositories.RefreshTokenRepository;
 
 import java.nio.charset.StandardCharsets;
@@ -43,11 +43,11 @@ public class RefreshTokenService {
 
         if (Boolean.TRUE.equals(refreshToken.getRevoked())) {
             revokeAllUserTokens(refreshToken.getUser());
-            throw new InvalidRefreshTokenException("Invalid refresh token");
+            throw new InvalidException("Invalid refresh token");
         }
 
         if (refreshToken.getExpiredAt() < System.currentTimeMillis()) {
-            throw new InvalidRefreshTokenException("Invalid refresh token");
+            throw new InvalidException("Invalid refresh token");
         }
 
         return refreshToken;
@@ -71,7 +71,7 @@ public class RefreshTokenService {
 
     private RefreshToken findRefreshToken(String token) {
         return refreshTokenRepository.findByToken(token)
-                .orElseThrow(() -> new InvalidRefreshTokenException("Invalid refresh token"));
+                .orElseThrow(() -> new InvalidException("Invalid refresh token"));
     }
 
     private String hash(String token) {
