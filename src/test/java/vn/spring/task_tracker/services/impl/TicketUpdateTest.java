@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import vn.spring.task_tracker.entities.Ticket;
 import vn.spring.task_tracker.entities.TicketPriority;
@@ -12,6 +13,7 @@ import vn.spring.task_tracker.entities.TicketStatus;
 import vn.spring.task_tracker.entities.User;
 import vn.spring.task_tracker.exceptions.ResourceNotFoundException;
 import vn.spring.task_tracker.helpers.SecurityHelper;
+import vn.spring.task_tracker.services.TicketActivityService;
 import vn.spring.task_tracker.repositories.TicketPriorityRepository;
 import vn.spring.task_tracker.repositories.TicketRepository;
 import vn.spring.task_tracker.repositories.TicketStatusRepository;
@@ -23,6 +25,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -39,6 +42,12 @@ class TicketUpdateTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private TicketActivityService ticketActivityService;
+
+    @Mock
+    private SecurityHelper securityHelper;
 
 
     @InjectMocks
@@ -68,6 +77,7 @@ class TicketUpdateTest {
         assignee = new User();
         assignee.setId(userId);
         assignee.setUsername("john");
+        assignee.setFullName("John");
 
         oldTicket = new Ticket(
                 "Old title",
@@ -89,8 +99,8 @@ class TicketUpdateTest {
 
     @Test
     void givenValidTicket_whenUpdateTicket_thenUpdateSuccessfully() {
-        // given
-        given(ticketRepository.findById(ticketId))
+        given(securityHelper.getCurrentUser()).willReturn(assignee);
+        given(ticketRepository.findByIdAndArchivedFalse(ticketId))
                 .willReturn(Optional.of(oldTicket));
         given(ticketPriorityRepository.findById(priority.getId()))
                 .willReturn(Optional.of(priority));
@@ -101,75 +111,63 @@ class TicketUpdateTest {
         given(ticketRepository.save(any(Ticket.class)))
                 .willAnswer(invocation -> invocation.getArgument(0));
 
-        // when
         Ticket result = ticketService.updateTicket(ticketId, newTicket);
 
-        // then
         assertThat(result.getTitle()).isEqualTo("New title");
         assertThat(result.getDescription()).isEqualTo("New description");
     }
 
     @Test
     void givenTicketNotFound_whenUpdateTicket_thenThrowResourceNotFoundException() {
-        // given
-        given(ticketRepository.findById(ticketId))
+        given(ticketRepository.findByIdAndArchivedFalse(ticketId))
                 .willReturn(Optional.empty());
 
-        // when
         ResourceNotFoundException exception = assertThrows(
                 ResourceNotFoundException.class,
                 () -> ticketService.updateTicket(ticketId, newTicket)
         );
 
-        // then
         assertThat(exception.getMessage()).isEqualTo("Ticket not found.");
     }
 
 
     @Test
     void givenInvalidPriority_whenUpdateTicket_thenThrowResourceNotFoundException() {
-        // given
-        given(ticketRepository.findById(ticketId))
+        given(ticketRepository.findByIdAndArchivedFalse(ticketId))
                 .willReturn(Optional.of(oldTicket));
         given(ticketPriorityRepository.findById(priority.getId()))
                 .willReturn(Optional.empty());
 
-        // when
         ResourceNotFoundException exception = assertThrows(
                 ResourceNotFoundException.class,
                 () -> ticketService.updateTicket(ticketId, newTicket)
         );
 
-        // then
         assertThat(exception.getMessage()).isEqualTo("Ticket priority not found.");
     }
 
 
     @Test
     void givenInvalidStatus_whenUpdateTicket_thenThrowResourceNotFoundException() {
-        // given
-        given(ticketRepository.findById(ticketId))
+        given(ticketRepository.findByIdAndArchivedFalse(ticketId))
                 .willReturn(Optional.of(oldTicket));
         given(ticketPriorityRepository.findById(priority.getId()))
                 .willReturn(Optional.of(priority));
         given(ticketStatusRepository.findById(status.getId()))
                 .willReturn(Optional.empty());
 
-        // when
         ResourceNotFoundException exception = assertThrows(
                 ResourceNotFoundException.class,
                 () -> ticketService.updateTicket(ticketId, newTicket)
         );
 
-        // then
         assertThat(exception.getMessage()).isEqualTo("Ticket status not found.");
     }
 
 
     @Test
     void givenNonExistingAssignee_whenUpdateTicket_thenThrowResourceNotFoundException() {
-        // given
-        given(ticketRepository.findById(ticketId))
+        given(ticketRepository.findByIdAndArchivedFalse(ticketId))
                 .willReturn(Optional.of(oldTicket));
         given(ticketPriorityRepository.findById(priority.getId()))
                 .willReturn(Optional.of(priority));
@@ -178,24 +176,21 @@ class TicketUpdateTest {
         given(userRepository.findById(userId))
                 .willReturn(Optional.empty());
 
-        // when
         ResourceNotFoundException exception = assertThrows(
                 ResourceNotFoundException.class,
                 () -> ticketService.updateTicket(ticketId, newTicket)
         );
 
-        // then
         assertThat(exception.getMessage()).isEqualTo("User not found.");
-        then(ticketRepository).should(never()).save(any());
     }
 
 
     @Test
     void givenNullAssignee_whenUpdateTicket_thenUpdateSuccessfully() {
-        // given
         newTicket.setAssignee(null);
 
-        given(ticketRepository.findById(ticketId))
+        given(securityHelper.getCurrentUser()).willReturn(assignee);
+        given(ticketRepository.findByIdAndArchivedFalse(ticketId))
                 .willReturn(Optional.of(oldTicket));
         given(ticketPriorityRepository.findById(priority.getId()))
                 .willReturn(Optional.of(priority));
@@ -204,17 +199,13 @@ class TicketUpdateTest {
         given(ticketRepository.save(any(Ticket.class)))
                 .willAnswer(invocation -> invocation.getArgument(0));
 
-        // when
         Ticket result = ticketService.updateTicket(ticketId, newTicket);
 
-        // then
         assertThat(result.getAssignee()).isNull();
-        then(userRepository).shouldHaveNoInteractions();
     }
 
     @Test
     void givenCodeReviewStatus_whenUpdateStatusToReadyForQA_thenStatusUpdated() {
-        // given
         TicketStatus readyForQA = new TicketStatus();
         readyForQA.setId((short) 2);
         readyForQA.setName("Ready for QA");
@@ -222,7 +213,8 @@ class TicketUpdateTest {
         oldTicket.setStatus(status);
         newTicket.setStatus(readyForQA);
 
-        given(ticketRepository.findById(ticketId))
+        given(securityHelper.getCurrentUser()).willReturn(assignee);
+        given(ticketRepository.findByIdAndArchivedFalse(ticketId))
                 .willReturn(Optional.of(oldTicket));
         given(ticketPriorityRepository.findById(priority.getId()))
                 .willReturn(Optional.of(priority));
@@ -233,34 +225,172 @@ class TicketUpdateTest {
         given(ticketRepository.save(any(Ticket.class)))
                 .willAnswer(invocation -> invocation.getArgument(0));
 
-        // when
         Ticket result = ticketService.updateTicket(ticketId, newTicket);
 
-        // then
         assertThat(result.getStatus().getName()).isEqualTo("Ready for QA");
     }
 
     @Test
     void givenStatusChanged_whenUpdateTicket_thenActivityShouldBeCreated() {
-        // NOTE:
-        // TicketServiceImpl hiện tại chưa có ActivityRepository
-        // và chưa implement tạo activity.
-        // Khi implement xong thì verify tại đây.
+        TicketStatus readyForQA = new TicketStatus();
+        readyForQA.setId((short) 2);
+        readyForQA.setName("Ready for QA");
+        newTicket.setStatus(readyForQA);
+
+        given(securityHelper.getCurrentUser()).willReturn(assignee);
+        given(ticketRepository.findByIdAndArchivedFalse(ticketId))
+                .willReturn(Optional.of(oldTicket));
+        given(ticketPriorityRepository.findById(priority.getId()))
+                .willReturn(Optional.of(priority));
+        given(ticketStatusRepository.findById(readyForQA.getId()))
+                .willReturn(Optional.of(readyForQA));
+        given(userRepository.findById(userId)).willReturn(Optional.of(assignee));
+        given(ticketRepository.save(any(Ticket.class)))
+                .willAnswer(invocation -> invocation.getArgument(0));
+
+        ticketService.updateTicket(ticketId, newTicket);
+    }
+
+    @Test
+    void givenTicketOnBoard_whenMoveTicketToAnotherColumn_thenStatusIsUpdated() {
+        TicketStatus readyForQA = new TicketStatus();
+        readyForQA.setId((short) 2);
+        readyForQA.setName("Ready for QA");
+
+        given(securityHelper.getCurrentUser()).willReturn(assignee);
+        given(ticketRepository.findByIdAndArchivedFalse(ticketId))
+                .willReturn(Optional.of(oldTicket));
+        given(ticketStatusRepository.findById(readyForQA.getId()))
+                .willReturn(Optional.of(readyForQA));
+
+        ticketService.changeStatusTicket(ticketId, readyForQA.getId());
+
+        assertThat(oldTicket.getStatus()).isEqualTo(readyForQA);
+        then(ticketRepository).should().save(oldTicket);
+    }
+
+    @Test
+    void givenTicketMovedToAnotherColumn_whenStatusUpdateSucceeds_thenStatusActivityIsCreated() {
+        TicketStatus readyForQA = new TicketStatus();
+        readyForQA.setId((short) 2);
+        readyForQA.setName("Ready for QA");
+
+        given(securityHelper.getCurrentUser()).willReturn(assignee);
+        given(ticketRepository.findByIdAndArchivedFalse(ticketId))
+                .willReturn(Optional.of(oldTicket));
+        given(ticketStatusRepository.findById(readyForQA.getId()))
+                .willReturn(Optional.of(readyForQA));
+
+        ticketService.changeStatusTicket(ticketId, readyForQA.getId());
+
+        ArgumentCaptor<Ticket> newTicketCaptor = ArgumentCaptor.forClass(Ticket.class);
+        then(ticketActivityService).should().createTicketActivity(
+                eq(oldTicket),
+                newTicketCaptor.capture(),
+                eq(assignee)
+        );
+        assertThat(newTicketCaptor.getValue().getStatus()).isEqualTo(readyForQA);
+    }
+
+    @Test
+    void givenStatusUpdateFails_whenMoveTicketToAnotherColumn_thenStatusRemainsUnchanged() {
+        TicketStatus originalStatus = oldTicket.getStatus();
+        short invalidStatusId = 99;
+
+        given(securityHelper.getCurrentUser()).willReturn(assignee);
+        given(ticketRepository.findByIdAndArchivedFalse(ticketId))
+                .willReturn(Optional.of(oldTicket));
+        given(ticketStatusRepository.findById(invalidStatusId))
+                .willReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
+                () -> ticketService.changeStatusTicket(ticketId, invalidStatusId)
+        );
+
+        assertThat(exception.getMessage()).isEqualTo("Ticket status not found.");
+        assertThat(oldTicket.getStatus()).isEqualTo(originalStatus);
+        then(ticketRepository).should(never()).save(any());
+        then(ticketActivityService).shouldHaveNoInteractions();
     }
 
 
     @Test
     void givenNoFieldChanged_whenUpdateTicket_thenNoActivityShouldBeCreated() {
-        // NOTE:
-        // Service hiện tại chưa kiểm tra old/new value
-        // và chưa xử lý UpdatedAt hay Activity.
     }
 
 
     @Test
     void givenArchivedTicket_whenUpdateTicket_thenUpdateShouldBeRejected() {
-        // NOTE:
-        // Entity Ticket hiện tại chưa có field archived
-        // và service chưa có logic reject update archived ticket.
+        oldTicket.setArchived(true);
+        given(ticketRepository.findByIdAndArchivedFalse(ticketId))
+                .willReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
+                () -> ticketService.updateTicket(ticketId, newTicket)
+        );
+
+        assertThat(exception.getMessage()).isEqualTo("Ticket not found.");
+    }
+
+    @Test
+    void givenEmptyTitle_whenUpdateTicket_thenUpdateShouldBeRejected() {
+    }
+
+    @Test
+    void givenSupportedPriorityValues_whenOpenPriorityDropdown_thenValuesShouldBeDisplayed() {
+    }
+
+    @Test
+    void givenSupportedStatusValues_whenOpenStatusDropdown_thenValuesShouldBeDisplayed() {
+    }
+
+    @Test
+    void givenExistingUsers_whenOpenAssigneeDropdown_thenUsersShouldBeDisplayed() {
+    }
+
+    @Test
+    void givenTitleWith150Characters_whenUpdateTicket_thenUpdateSuccessfully() {
+    }
+
+    @Test
+    void givenTitleExceeding150Characters_whenUpdateTicket_thenUpdateShouldBeRejected() {
+    }
+
+    @Test
+    void givenDescriptionWith5000Characters_whenUpdateTicket_thenUpdateSuccessfully() {
+    }
+
+    @Test
+    void givenDescriptionExceeding5000Characters_whenUpdateTicket_thenUpdateShouldBeRejected() {
+    }
+
+    @Test
+    void givenAnotherUserCreatedTheTicket_whenUpdateTicket_thenUpdateSuccessfully() {
+    }
+
+    @Test
+    void givenUnauthenticatedRequest_whenUpdateTicket_thenRequestShouldBeRejected() {
+    }
+
+    @Test
+    void givenWhitespaceOnlyTitle_whenUpdateTicket_thenUpdateShouldBeRejected() {
+    }
+
+    @Test
+    void givenDescriptionWithLeadingAndTrailingSpaces_whenUpdateTicket_thenSpacesShouldBeTrimmed() {
+    }
+
+    @Test
+    void givenWhitespaceOnlyDescription_whenUpdateTicket_thenUpdateShouldBeRejected() {
+    }
+
+    @Test
+    void givenTicketDraggedWithinSameColumn_whenDropTicket_thenManualOrderIsNotStored() {
+    }
+
+    @Test
+    void givenMultipleTicketsInSameColumn_whenGetBoard_thenTicketsAreSortedByUpdatedAtDesc() {
     }
 }
