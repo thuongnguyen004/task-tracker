@@ -1,6 +1,7 @@
 package vn.spring.task_tracker.services.impl;
 
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 import vn.spring.task_tracker.entities.*;
 import vn.spring.task_tracker.exceptions.ResourceNotFoundException;
@@ -36,36 +37,40 @@ public class TicketServiceImpl implements TicketService {
     private final UserRepository userRepository;
     private final SecurityHelper securityHelper;
 
-    public Ticket createTicket(Ticket ticket) {
+    public Ticket createTicket(Ticket ticket){
 
         User currentUser = securityHelper.getCurrentUser();
 
         TicketPriority ticketPriority = ticketPriorityRepository.findById(ticket.getPriority().getId())
-                .orElseThrow(() -> new ResourceNotFoundException(TicketPriorityMessage.NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket priority not found."));
 
         TicketStatus ticketStatus = ticketStatusRepository.findById(ticket.getStatus().getId())
-                .orElseThrow(() -> new ResourceNotFoundException(TicketStatusMessage.NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket status not found."));
 
         User assignee = null;
 
         if (ticket.getAssignee() != null) {
             assignee = userRepository.findById(ticket.getAssignee().getId())
                     .orElseThrow(() ->
-                            new ResourceNotFoundException(UserMessage.ASSIGNEE_NOT_FOUND));
+                            new ResourceNotFoundException("Assignee not found"));
         }
 
-        ticket.setAssignee(assignee);
         ticket.setPriority(ticketPriority);
         ticket.setStatus(ticketStatus);
         ticket.setAssignee(assignee);
         ticket.setCreatedBy(currentUser);
 
-        return this.ticketRepository.save(ticket);
+        Ticket savedTicket = ticketRepository.save(ticket);
+
+        ticketActivityService.createTicketActivity(savedTicket, currentUser);
+
+        return savedTicket;
+
     }
 
-    public Ticket getActiveTicketById(UUID id) {
-        return this.ticketRepository.findByIdAndArchivedFalse(id).orElseThrow(() ->
-                new ResourceNotFoundException(TicketMessage.NOT_FOUND));
+    public Ticket getActiveTicketById(UUID id){
+        return  this.ticketRepository.findByIdAndArchivedFalse(id).orElseThrow(() ->
+                new ResourceNotFoundException("Ticket not found"));
     }
 
     public List<Ticket> getAllActiveTickets() {

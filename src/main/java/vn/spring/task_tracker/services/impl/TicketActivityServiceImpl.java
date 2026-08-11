@@ -165,4 +165,14 @@ public class TicketActivityServiceImpl implements TicketActivityService {
 
         ticketActivityRepository.save(activity);
     }
+
+    public void createTicketActivity(Ticket ticket, User performedBy) {
+        create(
+                ticket,
+                ActivityEventCode.TICKET_CREATED,
+                performedBy,
+                null,
+                null
+        );
+    }
 }

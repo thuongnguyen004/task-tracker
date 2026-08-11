@@ -11,4 +11,5 @@ import java.util.UUID;
 public interface TicketActivityService {
     List<TicketActivity> getTicketActivityByIdTicket(UUID ticketId);
     void createTicketActivity(Ticket oldTicket, Ticket newTicket, User performedBy);
+    void createTicketActivity(Ticket ticket, User performedBy);
 }

@@ -12,7 +12,6 @@ import vn.spring.task_tracker.entities.User;
 import vn.spring.task_tracker.exceptions.ResourceNotFoundException;
 import vn.spring.task_tracker.helpers.SecurityHelper;
 import vn.spring.task_tracker.repositories.*;
-import vn.spring.task_tracker.services.ActivityService;
 import vn.spring.task_tracker.services.TicketPriorityService;
 import vn.spring.task_tracker.services.TicketStatusService;
 import vn.spring.task_tracker.services.impl.TicketServiceImpl;
@@ -48,12 +47,6 @@ public class TicketCreateLogicTest {
 
     @Mock
     private TicketStatusService ticketStatusService;
-
-    @Mock
-    private ActivityService activityService;
-
-    @Mock
-    private ActivityRepository activityRepository;
 
     private TicketPriority createPriority(short id, String name) {
         TicketPriority priority = new TicketPriority();
