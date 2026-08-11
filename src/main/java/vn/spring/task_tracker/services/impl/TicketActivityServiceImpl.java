@@ -1,6 +1,10 @@
 package vn.spring.task_tracker.services.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import vn.spring.task_tracker.constants.ActivityEventTypeMessage;
 import vn.spring.task_tracker.entities.ActivityEventType;
@@ -25,11 +29,28 @@ public class TicketActivityServiceImpl implements TicketActivityService {
 
     private final TicketActivityRepository ticketActivityRepository;
     private final ActivityEventTypeRepository activityEventTypeRepository;
-    private final SecurityHelper securityHelper;
 
     @Override
-    public List<TicketActivity> getTicketActivityByIdTicket(UUID ticketId) {
-        return ticketActivityRepository.findByTicket_IdOrderByCreatedAtDesc(ticketId);
+    public Page<TicketActivity> getTicketActivityByIdTicket(UUID ticketId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return ticketActivityRepository.findByTicket_IdOrderByCreatedAtDesc(ticketId, pageable);
+    }
+
+    @Override
+    public void createTicketActivity(
+            Ticket ticket,
+            ActivityEventCode eventCode,
+            User performedBy,
+            String oldValue,
+            String newValue
+    ) {
+        create(
+                ticket,
+                eventCode,
+                performedBy,
+                oldValue,
+                newValue
+        );
     }
 
     @Override
@@ -42,7 +63,6 @@ public class TicketActivityServiceImpl implements TicketActivityService {
                 newTicket.getTitle()
         );
 
-        // Description
         createIfChanged(
                 oldTicket,
                 ActivityEventCode.DESCRIPTION_CHANGED,
@@ -51,7 +71,6 @@ public class TicketActivityServiceImpl implements TicketActivityService {
                 newTicket.getDescription()
         );
 
-        // Status
         createIfChanged(
                 oldTicket,
                 ActivityEventCode.STATUS_CHANGED,
@@ -62,7 +81,6 @@ public class TicketActivityServiceImpl implements TicketActivityService {
                 newTicket.getStatus().getName()
         );
 
-        // Priority
         createIfChanged(
                 oldTicket,
                 ActivityEventCode.PRIORITY_CHANGED,

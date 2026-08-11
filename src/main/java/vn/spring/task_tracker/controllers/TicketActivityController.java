@@ -1,18 +1,17 @@
 package vn.spring.task_tracker.controllers;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Slice;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import vn.spring.task_tracker.dtos.responses.ApiResponse;
+import vn.spring.task_tracker.dtos.responses.PageResponse;
 import vn.spring.task_tracker.dtos.responses.TicketActivityResponse;
 import vn.spring.task_tracker.entities.TicketActivity;
 import vn.spring.task_tracker.mappers.TicketActivityResponseMapper;
 import vn.spring.task_tracker.services.TicketActivityService;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -23,10 +22,10 @@ public class TicketActivityController {
     private final TicketActivityService ticketActivityService;
 
     @GetMapping("/{ticketId}")
-    public ResponseEntity<ApiResponse<List<TicketActivityResponse>>> getTicketActivityByIdTicket(@PathVariable UUID ticketId) {
-        List<TicketActivity> ticketActivities = ticketActivityService.getTicketActivityByIdTicket(ticketId);
+    public ResponseEntity<ApiResponse<PageResponse<TicketActivityResponse>>> getTicketActivityByIdTicket(@PathVariable UUID ticketId, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
+        Page<TicketActivity> ticketActivities = ticketActivityService.getTicketActivityByIdTicket(ticketId, page, size);
 
-        List<TicketActivityResponse> response = new TicketActivityResponseMapper().buildList(ticketActivities);
+        PageResponse<TicketActivityResponse> response = new TicketActivityResponseMapper().buildList(ticketActivities);
 
         return ResponseEntity.ok(ApiResponse.success("Get activities successfully.", response));
     }

@@ -1,14 +1,14 @@
 package vn.spring.task_tracker.mappers;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Slice;
+import vn.spring.task_tracker.dtos.responses.PageResponse;
 import vn.spring.task_tracker.dtos.responses.TicketActivityResponse;
-import vn.spring.task_tracker.entities.ActivityEventType;
 import vn.spring.task_tracker.entities.TicketActivity;
 
-import java.util.List;
-
 public class TicketActivityResponseMapper {
+
     public TicketActivityResponse build(TicketActivity ticketActivity) {
-        ActivityEventType activityEventType = new ActivityEventType();
         return new TicketActivityResponse(
                 ticketActivity.getId(),
                 ticketActivity.getOldValue(),
@@ -20,9 +20,17 @@ public class TicketActivityResponseMapper {
         );
     }
 
-    public List<TicketActivityResponse> buildList(List<TicketActivity> ticketActivities) {
-        return ticketActivities.stream()
-                .map(this::build)
-                .toList();
+    public PageResponse<TicketActivityResponse> buildList(
+            Page<TicketActivity> ticketActivities
+    ) {
+        Page<TicketActivityResponse> activities =
+                ticketActivities.map(this::build);
+
+        return new PageResponse<>(
+                activities.getNumber(),
+                activities.getSize(),
+                activities.getTotalElements(),
+                activities.getContent()
+        );
     }
 }

@@ -3,6 +3,7 @@ package vn.spring.task_tracker.services.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import vn.spring.task_tracker.entities.*;
+import vn.spring.task_tracker.enums.ActivityEventCode;
 import vn.spring.task_tracker.exceptions.ResourceNotFoundException;
 import vn.spring.task_tracker.helpers.SecurityHelper;
 import vn.spring.task_tracker.repositories.*;
@@ -60,7 +61,11 @@ public class TicketServiceImpl implements TicketService {
         ticket.setAssignee(assignee);
         ticket.setCreatedBy(currentUser);
 
-        return this.ticketRepository.save(ticket);
+        Ticket savedTicket = ticketRepository.save(ticket);
+
+        ticketActivityService.createTicketActivity(savedTicket, ActivityEventCode.TICKET_CREATED, currentUser,null, null);
+
+        return savedTicket;
     }
 
     public Ticket getActiveTicketById(UUID id) {
