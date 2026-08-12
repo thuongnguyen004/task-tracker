@@ -1,7 +1,7 @@
 package vn.spring.task_tracker.services.impl;
 
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.spring.task_tracker.constants.AuthMessage;
 import vn.spring.task_tracker.constants.UserMessage;
-import vn.spring.task_tracker.mappers.AuthMapper;
 import vn.spring.task_tracker.dtos.requests.LoginRequest;
 import vn.spring.task_tracker.dtos.requests.RegisterRequest;
 import vn.spring.task_tracker.dtos.responses.LoginResponse;
@@ -19,14 +18,15 @@ import vn.spring.task_tracker.dtos.responses.RefreshTokenResult;
 import vn.spring.task_tracker.dtos.responses.UserProfileResponse;
 import vn.spring.task_tracker.entities.RefreshToken;
 import vn.spring.task_tracker.entities.User;
-import vn.spring.task_tracker.exceptions.AppException;
+import vn.spring.task_tracker.exceptions.ConflictException;
+import vn.spring.task_tracker.exceptions.InvalidException;
+import vn.spring.task_tracker.exceptions.ResourceNotFoundException;
+import vn.spring.task_tracker.mappers.AuthMapper;
 import vn.spring.task_tracker.repositories.UserRepository;
 import vn.spring.task_tracker.security.JwtService;
 import vn.spring.task_tracker.security.RefreshTokenService;
 import vn.spring.task_tracker.services.AuthService;
 import vn.spring.task_tracker.services.CurrentUserService;
-
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -47,11 +47,15 @@ public class AuthServiceImpl implements AuthService {
         String email = normalizeEmail(request.getEmail());
 
         if (userRepository.existsByEmailIgnoreCase(email)) {
-            throw new AppException(HttpStatus.CONFLICT, AuthMessage.EMAIL_ALREADY_EXISTS);
+            throw new ConflictException(AuthMessage.EMAIL_ALREADY_EXISTS);
         }
 
-        if (userRepository.existsByUsernameIgnoreCase(request.getUsername().trim())) {
-            throw new AppException(HttpStatus.CONFLICT, AuthMessage.USERNAME_ALREADY_EXISTS);
+        if (
+            userRepository.existsByUsernameIgnoreCase(
+                request.getUsername().trim()
+            )
+        ) {
+            throw new ConflictException(AuthMessage.USERNAME_ALREADY_EXISTS);
         }
 
         User user = authMapper.toEntity(request);
@@ -70,13 +74,13 @@ public class AuthServiceImpl implements AuthService {
 
         try {
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            email,
-                            request.getPassword()
-                    )
+                new UsernamePasswordAuthenticationToken(
+                    email,
+                    request.getPassword()
+                )
             );
         } catch (AuthenticationException exception) {
-            throw new AppException(HttpStatus.UNAUTHORIZED, AuthMessage.INVALID_CREDENTIALS);
+            throw new InvalidException(AuthMessage.INVALID_CREDENTIALS);
         }
 
         User user = findByEmail(email);
@@ -95,10 +99,12 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public RefreshTokenResult refresh(String refreshToken) {
         if (!jwtService.verifyRefreshToken(refreshToken)) {
-            throw new AppException(HttpStatus.UNAUTHORIZED, AuthMessage.INVALID_REFRESH_TOKEN);
+            throw new InvalidException(AuthMessage.INVALID_REFRESH_TOKEN);
         }
 
-        RefreshToken storedRefreshToken = refreshTokenService.getValidToken(refreshToken);
+        RefreshToken storedRefreshToken = refreshTokenService.getValidToken(
+            refreshToken
+        );
 
         User user = storedRefreshToken.getUser();
 
@@ -120,15 +126,19 @@ public class AuthServiceImpl implements AuthService {
     public UserProfileResponse getCurrentUser() {
         UUID userId = currentUserService.getCurrentUserId();
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, UserMessage.NOT_FOUND));
+        User user = userRepository
+            .findById(userId)
+            .orElseThrow(() -> new ResourceNotFoundException(UserMessage.NOT_FOUND));
 
         return authMapper.toUserProfileResponse(user);
     }
 
     private User findByEmail(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new AppException(HttpStatus.UNAUTHORIZED, AuthMessage.INVALID_CREDENTIALS));
+        return userRepository
+            .findByEmail(email)
+            .orElseThrow(() ->
+                new InvalidException(AuthMessage.INVALID_CREDENTIALS)
+            );
     }
 
     private String normalizeEmail(String email) {

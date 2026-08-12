@@ -13,4 +13,6 @@ public interface TicketPriorityRepository extends JpaRepository<TicketPriority, 
     Optional<TicketPriority> findByName(String name);
 
     Optional<TicketPriority> findById(short id);
+
+    boolean existsByName(String name);
 }
