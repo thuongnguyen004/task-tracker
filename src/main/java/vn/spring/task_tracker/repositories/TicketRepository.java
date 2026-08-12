@@ -13,5 +13,9 @@ public interface TicketRepository extends JpaRepository<Ticket, UUID> {
 
     Optional<Ticket> findByIdAndArchivedFalse(UUID id);
 
+    Optional<Ticket> findByIdAndArchivedTrue(UUID id);
+
     List<Ticket> findByArchivedFalse();
+
+    List<Ticket> findByArchivedTrueOrderByUpdatedAtDesc();
 }

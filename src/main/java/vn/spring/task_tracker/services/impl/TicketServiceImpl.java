@@ -1,7 +1,12 @@
 package vn.spring.task_tracker.services.impl;
 
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
+import vn.spring.task_tracker.entities.*;
+import vn.spring.task_tracker.exceptions.ResourceNotFoundException;
+import vn.spring.task_tracker.helpers.SecurityHelper;
+import vn.spring.task_tracker.repositories.*;
 import vn.spring.task_tracker.constants.TicketMessage;
 import vn.spring.task_tracker.constants.TicketPriorityMessage;
 import vn.spring.task_tracker.constants.TicketStatusMessage;
@@ -10,8 +15,6 @@ import vn.spring.task_tracker.entities.Ticket;
 import vn.spring.task_tracker.entities.TicketPriority;
 import vn.spring.task_tracker.entities.TicketStatus;
 import vn.spring.task_tracker.entities.User;
-import vn.spring.task_tracker.exceptions.ResourceNotFoundException;
-import vn.spring.task_tracker.helpers.SecurityHelper;
 import vn.spring.task_tracker.mappers.TicketUpdateMapper;
 import vn.spring.task_tracker.repositories.TicketPriorityRepository;
 import vn.spring.task_tracker.repositories.TicketRepository;
@@ -50,7 +53,6 @@ public class TicketServiceImpl implements TicketService {
                             new ResourceNotFoundException(UserMessage.ASSIGNEE_NOT_FOUND));
         }
 
-        ticket.setAssignee(assignee);
         ticket.setPriority(ticketPriority);
         ticket.setStatus(ticketStatus);
         ticket.setAssignee(assignee);
@@ -66,6 +68,35 @@ public class TicketServiceImpl implements TicketService {
 
     public List<Ticket> getAllActiveTickets() {
         return ticketRepository.findByArchivedFalse();
+    }
+
+    public Ticket getArchiveTicketById(UUID id) {
+        return this.ticketRepository.findByIdAndArchivedTrue(id).orElseThrow(() ->
+                new ResourceNotFoundException(TicketMessage.NOT_FOUND));
+    }
+
+    public List<Ticket> getAllArchiveTickets() {
+        return ticketRepository.findByArchivedTrueOrderByUpdatedAtDesc();
+    }
+
+    public void archiveTicket(UUID ticketId) {
+        Ticket ticket = ticketRepository.findByIdAndArchivedFalse(ticketId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(TicketMessage.NOT_FOUND));
+
+        ticket.setArchived(true);
+
+        ticketRepository.save(ticket);
+    }
+
+    public void restoreTicket(UUID ticketId) {
+        Ticket ticket = ticketRepository.findByIdAndArchivedTrue(ticketId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(TicketMessage.NOT_FOUND));
+
+        ticket.setArchived(false);
+
+        ticketRepository.save(ticket);
     }
 
     public Ticket updateTicket(
@@ -105,4 +136,5 @@ public class TicketServiceImpl implements TicketService {
 
         ticketRepository.save(ticket);
     }
+
 }

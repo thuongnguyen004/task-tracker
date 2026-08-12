@@ -69,6 +69,50 @@ public class TicketController {
         return ResponseEntity.ok(ApiResponse.success(TicketMessage.GET_ALL_ACTIVE_SUCCESS, ticketResponse));
     }
 
+    @GetMapping("/archives/{id}")
+    public ResponseEntity<ApiResponse<TicketResponse>> getArchiveTicketById(
+            @PathVariable("id")
+            UUID id
+    ) {
+
+        TicketResponseMapper ticketResponseMapper = new TicketResponseMapper();
+
+        Ticket ticket = this.ticketService.getArchiveTicketById(id);
+
+        TicketResponse ticketResponse = ticketResponseMapper.build(ticket);
+
+        return ResponseEntity.ok(ApiResponse.success(TicketMessage.GET_BY_ID_SUCCESS, ticketResponse));
+    }
+
+    @GetMapping("/archives")
+    public ResponseEntity<ApiResponse<List<TicketResponse>>> getAllArchiveTickets() {
+        List<Ticket> ticket = ticketService.getAllArchiveTickets();
+
+        List<TicketResponse> ticketResponse = new TicketResponseMapper().buildList(ticket);
+
+        return ResponseEntity.ok(ApiResponse.success(TicketMessage.GET_ALL_ARCHIVE_SUCCESS, ticketResponse));
+    }
+
+    @PatchMapping("/{id}/archive")
+    public ResponseEntity<Void> archiveTicket(
+            @PathVariable
+            UUID id
+    ) {
+        ticketService.archiveTicket(id);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/restore")
+    public ResponseEntity<Void> restoreTicket(
+            @PathVariable
+            UUID id
+    ) {
+        ticketService.restoreTicket(id);
+
+        return ResponseEntity.noContent().build();
+    }
+
     @PutMapping("/{ticketId}")
     public ResponseEntity<ApiResponse<TicketResponse>> updateTicket(
             @PathVariable
