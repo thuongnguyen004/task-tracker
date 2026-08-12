@@ -5,8 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import vn.spring.task_tracker.enums.ActivityEventCode;
-
 import java.util.List;
 
 @Entity
@@ -24,10 +22,6 @@ public class ActivityEventType {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private short id;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, unique = true, length = 30)
-    private ActivityEventCode code;
 
     @Column(nullable = false, length = 50)
     private String name;
