@@ -1,5 +1,6 @@
 package vn.spring.task_tracker.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -33,6 +34,7 @@ public class TicketStatus {
     @Column(nullable = false)
     private Long updatedAt;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "status", fetch = FetchType.LAZY)
     private List<Ticket> tickets;
 
