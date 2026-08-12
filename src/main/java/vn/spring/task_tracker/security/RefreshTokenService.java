@@ -2,171 +2,99 @@ package vn.spring.task_tracker.security;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.Base64;
-import java.util.Map;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import vn.spring.task_tracker.configs.JwtProperties;
+import vn.spring.task_tracker.constants.AuthMessage;
 import vn.spring.task_tracker.entities.RefreshToken;
 import vn.spring.task_tracker.entities.User;
-import vn.spring.task_tracker.exceptions.AppException;
+import vn.spring.task_tracker.exceptions.InvalidException;
 import vn.spring.task_tracker.repositories.RefreshTokenRepository;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
+@Transactional(readOnly = true)
 public class RefreshTokenService {
 
-    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
-    private static final int TOKEN_BYTES = 32;
-
     private final RefreshTokenRepository refreshTokenRepository;
-    private final JwtService jwtService;
-
-    @Value("${security.jwt.refresh-token-expiration-ms}")
-    private long refreshTokenExpirationMs;
+    private final JwtProperties jwtProperties;
 
     @Transactional
-    public String createRefreshToken(User user) {
-        String rawToken = generateSecureToken();
-        String tokenHash = hashToken(rawToken);
-        long expiresAt = System.currentTimeMillis() + refreshTokenExpirationMs;
+    public void save(String token, User user) {
+        revokeAllUserTokens(user);
 
         long now = System.currentTimeMillis();
-        RefreshToken refreshToken = RefreshToken.builder()
-            .user(user)
-            .token(rawToken)
-            .tokenHash(tokenHash)
-            .expiresAt(expiresAt)
-            .createdAt(now)
-            .updatedAt(now)
-            .build();
+        RefreshToken refreshToken = new RefreshToken();
+
+        refreshToken.setToken(hash(token));
+        refreshToken.setUser(user);
+        refreshToken.setRevoked(false);
+        refreshToken.setExpiredAt(
+            now + jwtProperties.getRefreshTokenExpiration().toMillis()
+        );
+        refreshToken.setCreatedAt(now);
+        refreshToken.setUpdatedAt(now);
 
         refreshTokenRepository.save(refreshToken);
-        return rawToken;
+    }
+
+    public RefreshToken getValidToken(String token) {
+        RefreshToken refreshToken = findRefreshToken(hash(token));
+
+        if (Boolean.TRUE.equals(refreshToken.getRevoked())) {
+            revokeAllUserTokens(refreshToken.getUser());
+            throw new InvalidException(AuthMessage.INVALID_REFRESH_TOKEN);
+        }
+
+        if (refreshToken.getExpiredAt() < System.currentTimeMillis()) {
+            throw new InvalidException(AuthMessage.INVALID_REFRESH_TOKEN);
+        }
+
+        return refreshToken;
     }
 
     @Transactional
-    public RotationResult rotate(String rawToken) {
-        if (rawToken == null || rawToken.isBlank()) {
-            throw new AppException(
-                HttpStatus.UNAUTHORIZED,
-                "Refresh token is required"
-            );
-        }
+    public void revokeIfExists(String token) {
+        refreshTokenRepository
+            .findByToken(hash(token))
+            .ifPresent(refreshToken -> {
+                refreshToken.setRevoked(true);
 
-        String tokenHash = hashToken(rawToken);
-        RefreshToken stored = refreshTokenRepository
-            .findByTokenHash(tokenHash)
+                refreshTokenRepository.save(refreshToken);
+            });
+    }
+
+    @Transactional
+    public void revokeAllUserTokens(User user) {
+        List<RefreshToken> tokens = refreshTokenRepository.findAllByUserId(
+            user.getId()
+        );
+
+        tokens.forEach(token -> token.setRevoked(true));
+
+        refreshTokenRepository.saveAll(tokens);
+    }
+
+    private RefreshToken findRefreshToken(String token) {
+        return refreshTokenRepository
+            .findByToken(token)
             .orElseThrow(() ->
-                new AppException(
-                    HttpStatus.UNAUTHORIZED,
-                    "Invalid refresh token"
-                )
+                new InvalidException(AuthMessage.INVALID_REFRESH_TOKEN)
             );
-
-        if (stored.isRevoked()) {
-            log.warn(
-                "Refresh token reuse detected for user {}. Revoking all sessions.",
-                stored.getUser().getId()
-            );
-            refreshTokenRepository.revokeAllActiveByUserId(
-                stored.getUser().getId(),
-                System.currentTimeMillis()
-            );
-            throw new AppException(
-                HttpStatus.UNAUTHORIZED,
-                "Refresh token reuse detected. All sessions have been revoked."
-            );
-        }
-
-        if (stored.isExpired()) {
-            throw new AppException(
-                HttpStatus.UNAUTHORIZED,
-                "Refresh token expired. Please log in again."
-            );
-        }
-
-        User user = stored.getUser();
-        String newRawRefresh = generateSecureToken();
-        String newHash = hashToken(newRawRefresh);
-        long now = System.currentTimeMillis();
-        long expiresAt = now + refreshTokenExpirationMs;
-
-        RefreshToken newToken = RefreshToken.builder()
-            .user(user)
-            .token(newRawRefresh)
-            .tokenHash(newHash)
-            .expiresAt(expiresAt)
-            .createdAt(now)
-            .updatedAt(now)
-            .build();
-        newToken = refreshTokenRepository.save(newToken);
-
-        long revokeTime = System.currentTimeMillis();
-        stored.setRevokedAt(revokeTime);
-        stored.setUpdatedAt(revokeTime);
-        stored.setReplacedByTokenId(newToken.getId());
-        refreshTokenRepository.save(stored);
-
-        String accessToken = jwtService.generateToken(
-            user.getEmail(),
-            Map.of()
-        );
-
-        return new RotationResult(accessToken, newRawRefresh, user);
     }
 
-    @Transactional
-    public void revoke(String rawToken) {
-        if (rawToken == null || rawToken.isBlank()) {
-            return;
-        }
-        String tokenHash = hashToken(rawToken);
-        refreshTokenRepository.findByTokenHash(tokenHash).ifPresent(rt -> {
-            if (!rt.isRevoked()) {
-                long now = System.currentTimeMillis();
-                rt.setRevokedAt(now);
-                rt.setUpdatedAt(now);
-                refreshTokenRepository.save(rt);
-            }
-        });
-    }
-
-    @Transactional
-    public void revokeAllForUser(java.util.UUID userId) {
-        refreshTokenRepository.revokeAllActiveByUserId(
-            userId,
-            System.currentTimeMillis()
-        );
-    }
-
-    private String generateSecureToken() {
-        byte[] bytes = new byte[TOKEN_BYTES];
-        SECURE_RANDOM.nextBytes(bytes);
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
-    }
-
-    private String hashToken(String rawToken) {
+    private String hash(String token) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(
-                rawToken.getBytes(StandardCharsets.UTF_8)
-            );
-            return Base64.getUrlEncoder().withoutPadding().encodeToString(hash);
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("SHA-256 not available", e);
+
+            byte[] hash = digest.digest(token.getBytes(StandardCharsets.UTF_8));
+
+            return Base64.getEncoder().encodeToString(hash);
+        } catch (Exception e) {
+            throw new IllegalStateException("Cannot hash refresh token", e);
         }
     }
-
-    public record RotationResult(
-        String accessToken,
-        String refreshToken,
-        User user
-    ) {}
 }

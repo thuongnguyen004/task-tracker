@@ -1,0 +1,13 @@
+package vn.spring.task_tracker.repositories;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import vn.spring.task_tracker.entities.TicketActivity;
+
+import java.util.List;
+import java.util.UUID;
+
+@Repository
+public interface TicketActivityRepository extends JpaRepository<TicketActivity, UUID> {
+    List<TicketActivity> findByTicket_IdOrderByCreatedAtDesc(UUID ticketId);
+}
