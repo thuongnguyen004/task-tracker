@@ -1,6 +1,8 @@
 package vn.spring.task_tracker.controllers;
 
 import jakarta.validation.Valid;
+import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,9 +18,6 @@ import vn.spring.task_tracker.mappers.TicketResponseMapper;
 import vn.spring.task_tracker.mappers.TicketUpdateMapper;
 import vn.spring.task_tracker.services.TicketService;
 
-import java.util.List;
-import java.util.UUID;
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/tickets")
@@ -28,9 +27,7 @@ public class TicketController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<TicketResponse>> createTicket(
-            @Valid
-            @RequestBody
-            TicketCreateRequest ticketCreateRequest
+        @Valid @RequestBody TicketCreateRequest ticketCreateRequest
     ) {
         TicketCreateMapper ticketMapper = new TicketCreateMapper();
         TicketResponseMapper ticketResponseMapper = new TicketResponseMapper();
@@ -41,59 +38,88 @@ public class TicketController {
 
         TicketResponse ticketResponse = ticketResponseMapper.build(newTicket);
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.created(TicketMessage.CREATE_SUCCESS, ticketResponse));
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+            ApiResponse.created(TicketMessage.CREATE_SUCCESS, ticketResponse)
+        );
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<TicketResponse>> getActiveTicketById(
-            @PathVariable("id")
-            UUID id
+        @PathVariable("id") UUID id
     ) {
-
         TicketResponseMapper ticketResponseMapper = new TicketResponseMapper();
 
         Ticket ticket = this.ticketService.getActiveTicketById(id);
 
         TicketResponse ticketResponse = ticketResponseMapper.build(ticket);
 
-        return ResponseEntity.ok(ApiResponse.success(TicketMessage.GET_BY_ID_SUCCESS, ticketResponse));
+        return ResponseEntity.ok(
+            ApiResponse.success(TicketMessage.GET_BY_ID_SUCCESS, ticketResponse)
+        );
     }
 
     @GetMapping()
-    public ResponseEntity<ApiResponse<List<TicketResponse>>> getAllActiveTickets() {
-        List<Ticket> ticket = ticketService.getAllActiveTickets();
+    public ResponseEntity<
+        ApiResponse<List<TicketResponse>>
+    > getAllActiveTickets(
+        @RequestParam(required = false) String title,
+        @RequestParam(required = false) List<Short> priorityIds,
+        @RequestParam(required = false) UUID assigneeId,
+        @RequestParam(
+            required = false,
+            defaultValue = "false"
+        ) boolean unassigned
+    ) {
+        List<Ticket> tickets;
+        if (
+            title != null ||
+            priorityIds != null ||
+            assigneeId != null ||
+            unassigned
+        ) {
+            tickets = ticketService.findWithFilters(
+                title,
+                priorityIds,
+                assigneeId,
+                unassigned
+            );
+        } else {
+            tickets = ticketService.getAllActiveTickets();
+        }
 
-        List<TicketResponse> ticketResponse = new TicketResponseMapper().buildList(ticket);
+        List<TicketResponse> ticketResponse =
+            new TicketResponseMapper().buildList(tickets);
 
-        return ResponseEntity.ok(ApiResponse.success(TicketMessage.GET_ALL_ACTIVE_SUCCESS, ticketResponse));
+        return ResponseEntity.ok(
+            ApiResponse.success(
+                TicketMessage.GET_ALL_ACTIVE_SUCCESS,
+                ticketResponse
+            )
+        );
     }
 
     @PutMapping("/{ticketId}")
     public ResponseEntity<ApiResponse<TicketResponse>> updateTicket(
-            @PathVariable
-            UUID ticketId,
-
-            @Valid
-            @RequestBody
-            TicketUpdateRequest ticketUpdateRequest
+        @PathVariable UUID ticketId,
+        @Valid @RequestBody TicketUpdateRequest ticketUpdateRequest
     ) {
         Ticket ticket = new TicketUpdateMapper().build(ticketUpdateRequest);
 
         Ticket savedTicket = ticketService.updateTicket(ticketId, ticket);
 
-        TicketResponse ticketResponse = new TicketResponseMapper().build(savedTicket);
+        TicketResponse ticketResponse = new TicketResponseMapper().build(
+            savedTicket
+        );
 
-        return ResponseEntity.ok(ApiResponse.success(TicketMessage.UPDATE_SUCCESS, ticketResponse));
+        return ResponseEntity.ok(
+            ApiResponse.success(TicketMessage.UPDATE_SUCCESS, ticketResponse)
+        );
     }
 
     @PatchMapping("/{ticketId}/status/{statusId}")
     public ResponseEntity<Void> changeStatusTicket(
-            @PathVariable
-            UUID ticketId,
-
-            @PathVariable
-            short statusId
+        @PathVariable UUID ticketId,
+        @PathVariable short statusId
     ) {
         ticketService.changeStatusTicket(ticketId, statusId);
 

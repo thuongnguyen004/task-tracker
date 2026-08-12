@@ -1,5 +1,7 @@
 package vn.spring.task_tracker.services.impl;
 
+import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import vn.spring.task_tracker.constants.TicketMessage;
@@ -19,9 +21,6 @@ import vn.spring.task_tracker.repositories.TicketStatusRepository;
 import vn.spring.task_tracker.repositories.UserRepository;
 import vn.spring.task_tracker.services.TicketService;
 
-import java.util.List;
-import java.util.UUID;
-
 @Service
 @RequiredArgsConstructor
 public class TicketServiceImpl implements TicketService {
@@ -33,21 +32,30 @@ public class TicketServiceImpl implements TicketService {
     private final SecurityHelper securityHelper;
 
     public Ticket createTicket(Ticket ticket) {
-
         User currentUser = securityHelper.getCurrentUser();
 
-        TicketPriority ticketPriority = ticketPriorityRepository.findById(ticket.getPriority().getId())
-                .orElseThrow(() -> new ResourceNotFoundException(TicketPriorityMessage.NOT_FOUND));
+        TicketPriority ticketPriority = ticketPriorityRepository
+            .findById(ticket.getPriority().getId())
+            .orElseThrow(() ->
+                new ResourceNotFoundException(TicketPriorityMessage.NOT_FOUND)
+            );
 
-        TicketStatus ticketStatus = ticketStatusRepository.findById(ticket.getStatus().getId())
-                .orElseThrow(() -> new ResourceNotFoundException(TicketStatusMessage.NOT_FOUND));
+        TicketStatus ticketStatus = ticketStatusRepository
+            .findById(ticket.getStatus().getId())
+            .orElseThrow(() ->
+                new ResourceNotFoundException(TicketStatusMessage.NOT_FOUND)
+            );
 
         User assignee = null;
 
         if (ticket.getAssignee() != null) {
-            assignee = userRepository.findById(ticket.getAssignee().getId())
-                    .orElseThrow(() ->
-                            new ResourceNotFoundException(UserMessage.ASSIGNEE_NOT_FOUND));
+            assignee = userRepository
+                .findById(ticket.getAssignee().getId())
+                .orElseThrow(() ->
+                    new ResourceNotFoundException(
+                        UserMessage.ASSIGNEE_NOT_FOUND
+                    )
+                );
         }
 
         ticket.setAssignee(assignee);
@@ -60,30 +68,67 @@ public class TicketServiceImpl implements TicketService {
     }
 
     public Ticket getActiveTicketById(UUID id) {
-        return this.ticketRepository.findByIdAndArchivedFalse(id).orElseThrow(() ->
-                new ResourceNotFoundException(TicketMessage.NOT_FOUND));
+        return this.ticketRepository
+            .findByIdAndArchivedFalse(id)
+            .orElseThrow(() ->
+                new ResourceNotFoundException(TicketMessage.NOT_FOUND)
+            );
     }
 
     public List<Ticket> getAllActiveTickets() {
         return ticketRepository.findByArchivedFalse();
     }
 
-    public Ticket updateTicket(
-            UUID ticketId,
-            Ticket ticket
+    public List<Ticket> findWithFilters(
+        String title,
+        List<Short> priorityIds,
+        UUID assigneeId,
+        boolean unassigned
     ) {
-        Ticket oldValue = ticketRepository.findByIdAndArchivedFalse(ticketId)
-                .orElseThrow(() -> new ResourceNotFoundException(TicketMessage.NOT_FOUND));
+        boolean filterByAssignee;
 
-        ticketPriorityRepository.findById(ticket.getPriority().getId())
-                .orElseThrow(() -> new ResourceNotFoundException(TicketPriorityMessage.NOT_FOUND));
+        if (unassigned) {
+            filterByAssignee = true;
+            assigneeId = null;
+        } else if (assigneeId != null) {
+            filterByAssignee = true;
+        } else {
+            filterByAssignee = false;
+        }
+        return ticketRepository.findWithFilters(
+            title,
+            priorityIds,
+            filterByAssignee,
+            unassigned,
+            assigneeId
+        );
+    }
 
-        ticketStatusRepository.findById(ticket.getStatus().getId())
-                .orElseThrow(() -> new ResourceNotFoundException(TicketStatusMessage.NOT_FOUND));
+    public Ticket updateTicket(UUID ticketId, Ticket ticket) {
+        Ticket oldValue = ticketRepository
+            .findByIdAndArchivedFalse(ticketId)
+            .orElseThrow(() ->
+                new ResourceNotFoundException(TicketMessage.NOT_FOUND)
+            );
+
+        ticketPriorityRepository
+            .findById(ticket.getPriority().getId())
+            .orElseThrow(() ->
+                new ResourceNotFoundException(TicketPriorityMessage.NOT_FOUND)
+            );
+
+        ticketStatusRepository
+            .findById(ticket.getStatus().getId())
+            .orElseThrow(() ->
+                new ResourceNotFoundException(TicketStatusMessage.NOT_FOUND)
+            );
 
         if (ticket.getAssignee() != null) {
-            userRepository.findById(ticket.getAssignee().getId())
-                    .orElseThrow(() -> new ResourceNotFoundException(UserMessage.NOT_FOUND));
+            userRepository
+                .findById(ticket.getAssignee().getId())
+                .orElseThrow(() ->
+                    new ResourceNotFoundException(UserMessage.NOT_FOUND)
+                );
         }
 
         new TicketUpdateMapper().update(oldValue, ticket);
@@ -91,15 +136,18 @@ public class TicketServiceImpl implements TicketService {
         return ticketRepository.save(oldValue);
     }
 
-    public void changeStatusTicket(
-            UUID ticketId,
-            short statusId
-    ) {
-        Ticket ticket = ticketRepository.findByIdAndArchivedFalse(ticketId)
-                .orElseThrow(() -> new ResourceNotFoundException(TicketMessage.NOT_FOUND));
+    public void changeStatusTicket(UUID ticketId, short statusId) {
+        Ticket ticket = ticketRepository
+            .findByIdAndArchivedFalse(ticketId)
+            .orElseThrow(() ->
+                new ResourceNotFoundException(TicketMessage.NOT_FOUND)
+            );
 
-        TicketStatus ticketStatus = ticketStatusRepository.findById(statusId)
-                .orElseThrow(() -> new ResourceNotFoundException(TicketStatusMessage.NOT_FOUND));
+        TicketStatus ticketStatus = ticketStatusRepository
+            .findById(statusId)
+            .orElseThrow(() ->
+                new ResourceNotFoundException(TicketStatusMessage.NOT_FOUND)
+            );
 
         ticket.setStatus(ticketStatus);
 
