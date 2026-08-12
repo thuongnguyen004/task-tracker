@@ -16,7 +16,7 @@ import vn.spring.task_tracker.entities.Ticket;
 import vn.spring.task_tracker.mappers.TicketCreateMapper;
 import vn.spring.task_tracker.mappers.TicketResponseMapper;
 import vn.spring.task_tracker.mappers.TicketUpdateMapper;
-import vn.spring.task_tracker.services.*;
+import vn.spring.task_tracker.services.TicketService;
 
 @RestController
 @RequiredArgsConstructor
