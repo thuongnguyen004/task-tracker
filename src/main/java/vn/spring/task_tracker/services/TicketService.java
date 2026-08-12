@@ -15,4 +15,13 @@ public interface TicketService {
     void changeStatusTicket(UUID ticketId, short statusId);
 
     List<Ticket> getAllActiveTickets();
+
+    List<Ticket> getAllArchiveTickets();
+
+    Ticket getArchiveTicketById(UUID id);
+
+    void archiveTicket(UUID ticketId);
+
+    void restoreTicket(UUID ticketId);
+
 }

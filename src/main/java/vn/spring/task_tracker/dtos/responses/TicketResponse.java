@@ -35,4 +35,6 @@ public class TicketResponse {
     private Long createdAt;
 
     private Long updatedAt;
+
+    private Boolean archived;
 }

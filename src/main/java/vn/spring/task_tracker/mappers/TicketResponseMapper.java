@@ -23,7 +23,8 @@ public class TicketResponseMapper {
                         : null,
                 ticket.getCreatedBy().getFullName(),
                 ticket.getCreatedAt(),
-                ticket.getUpdatedAt()
+                ticket.getUpdatedAt(),
+                ticket.isArchived()
         );
     }
 
