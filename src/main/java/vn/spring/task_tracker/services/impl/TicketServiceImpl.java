@@ -74,7 +74,7 @@ public class TicketServiceImpl implements TicketService {
     }
 
     public List<Ticket> getAllActiveTickets() {
-        return ticketRepository.findByArchivedFalse();
+        return ticketRepository.findByArchivedFalseOrderByCreatedAtDesc();
     }
 
     public Ticket updateTicket(UUID ticketId, Ticket ticket) {
