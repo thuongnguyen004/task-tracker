@@ -13,37 +13,15 @@ import vn.spring.task_tracker.dtos.responses.ErrorResponse;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(AppException.class)
-    public ResponseEntity<ErrorResponse> handleAppException(AppException ex) {
-        ErrorResponse error = new ErrorResponse(
-                LocalDateTime.now(),
-                ex.getStatus().value(),
-                ex.getStatus().getReasonPhrase(),
-                ex.getMessage()
-        );
-        return ResponseEntity.status(ex.getStatus()).body(error);
-    }
-
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleResourceNotFound(ResourceNotFoundException ex) {
-        ErrorResponse error = new ErrorResponse(
-                LocalDateTime.now(),
-                ex.getStatus().value(),
-                ex.getStatus().getReasonPhrase(),
-                ex.getMessage()
-        );
-        return ResponseEntity.status(ex.getStatus()).body(error);
-    }
-
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFound(
-        ResourceNotFoundException ex
+            ResourceNotFoundException ex
     ) {
         ErrorResponse error = new ErrorResponse(
-            LocalDateTime.now(),
-            HttpStatus.NOT_FOUND.value(),
-            HttpStatus.NOT_FOUND.getReasonPhrase(),
-            ex.getMessage()
+                LocalDateTime.now(),
+                HttpStatus.NOT_FOUND.value(),
+                HttpStatus.NOT_FOUND.getReasonPhrase(),
+                ex.getMessage()
         );
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
@@ -51,10 +29,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AppException.class)
     public ResponseEntity<ErrorResponse> handleAppException(AppException ex) {
         ErrorResponse error = new ErrorResponse(
-            LocalDateTime.now(),
-            ex.getStatus().value(),
-            ex.getStatus().getReasonPhrase(),
-            ex.getMessage()
+                LocalDateTime.now(),
+                ex.getStatus().value(),
+                ex.getStatus().getReasonPhrase(),
+                ex.getMessage()
         );
         return ResponseEntity.status(ex.getStatus()).body(error);
     }
@@ -109,7 +87,7 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
-    
+
     @ExceptionHandler(ForbiddenException.class)
     public ResponseEntity<ErrorResponse> handleForbidden(ForbiddenException ex) {
         ErrorResponse error = new ErrorResponse(
