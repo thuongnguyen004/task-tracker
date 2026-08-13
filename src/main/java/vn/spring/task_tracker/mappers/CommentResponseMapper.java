@@ -7,7 +7,7 @@ import java.util.List;
 
 public class CommentResponseMapper {
     public CommentResponse build(Comment comment) {
-        String author = comment.getCreatedBy() != null ? comment.getCreatedBy().getUsername() : "Unknown";
+        String author = comment.getCreatedBy() != null ? comment.getCreatedBy().getFullName() : "Unknown";
 
         boolean edited = comment.getUpdatedAt() != null
                 && comment.getCreatedAt() != null
