@@ -44,7 +44,7 @@ public class CommentServiceImpl implements CommentService {
         comment.setTicket(ticket);
         comment.setCreatedBy(currentUser);
 
-        ticketActivityService.createTicketActivity(ticket, ActivityEventCode.COMMENT_ADDED, currentUser, null, null);
+        ticketActivityService.createTicketActivity(ticket, ActivityEventCode.COMMENT_ADDED, currentUser, null, comment.getContent());
 
         return commentRepository.save(comment);
     }
@@ -68,6 +68,10 @@ public class CommentServiceImpl implements CommentService {
 
         if (!existingComment.getCreatedBy().getId().equals(currentUser.getId())) {
             throw new ForbiddenException(CommentMessage.FORBIDDEN_EDIT);
+        }
+
+        if(!existingComment.getContent().equals(comment.getContent().trim())) {
+            ticketActivityService.createTicketActivity(existingComment.getTicket(), ActivityEventCode.COMMENT_CHANGED, currentUser, existingComment.getContent(), comment.getContent());
         }
 
         existingComment.setContent(comment.getContent().trim());

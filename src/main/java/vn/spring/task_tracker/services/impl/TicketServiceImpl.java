@@ -157,6 +157,7 @@ public class TicketServiceImpl implements TicketService {
                 ticket.getPriority(),
                 ticketStatus,
                 ticket.getAssignee()
+
         );
 
         ticketActivityService.createTicketActivity(

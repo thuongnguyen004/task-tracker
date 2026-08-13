@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import vn.spring.task_tracker.constants.ActivityEventTypeMessage;
 import vn.spring.task_tracker.entities.ActivityEventType;
@@ -20,8 +19,11 @@ import vn.spring.task_tracker.repositories.TicketActivityRepository;
 import vn.spring.task_tracker.services.TicketActivityService;
 
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +31,7 @@ public class TicketActivityServiceImpl implements TicketActivityService {
 
     private final TicketActivityRepository ticketActivityRepository;
     private final ActivityEventTypeRepository activityEventTypeRepository;
+    private final TicketActivityChangeDetector changeDetector;
 
     @Override
     public Page<TicketActivity> getTicketActivityByIdTicket(UUID ticketId, int page, int size) {
@@ -55,109 +58,47 @@ public class TicketActivityServiceImpl implements TicketActivityService {
 
     @Override
     public void createTicketActivity(Ticket oldTicket, Ticket newTicket, User performedBy) {
-        createIfChanged(
-                oldTicket,
-                ActivityEventCode.TITLE_CHANGED,
-                performedBy,
-                oldTicket.getTitle(),
-                newTicket.getTitle()
-        );
+        List<TicketActivityChangeDetector.ActivityChange> changes =
+                changeDetector.detect(oldTicket, newTicket);
 
-        createIfChanged(
-                oldTicket,
-                ActivityEventCode.DESCRIPTION_CHANGED,
-                performedBy,
-                oldTicket.getDescription(),
-                newTicket.getDescription()
-        );
-
-        createIfChanged(
-                oldTicket,
-                ActivityEventCode.STATUS_CHANGED,
-                performedBy,
-                oldTicket.getStatus().getId(),
-                newTicket.getStatus().getId(),
-                oldTicket.getStatus().getName(),
-                newTicket.getStatus().getName()
-        );
-
-        createIfChanged(
-                oldTicket,
-                ActivityEventCode.PRIORITY_CHANGED,
-                performedBy,
-                oldTicket.getPriority().getId(),
-                newTicket.getPriority().getId(),
-                oldTicket.getPriority().getName(),
-                newTicket.getPriority().getName()
-        );
-
-        UUID oldAssigneeId = oldTicket.getAssignee() == null
-                ? null
-                : oldTicket.getAssignee().getId();
-
-        UUID newAssigneeId = newTicket.getAssignee() == null
-                ? null
-                : newTicket.getAssignee().getId();
-
-        String oldAssigneeName = oldTicket.getAssignee() == null
-                ? null
-                : oldTicket.getAssignee().getUsername();
-
-        String newAssigneeName = newTicket.getAssignee() == null
-                ? null
-                : newTicket.getAssignee().getUsername();
-
-        createIfChanged(
-                oldTicket,
-                ActivityEventCode.ASSIGNEE_CHANGED,
-                performedBy,
-                oldAssigneeId,
-                newAssigneeId,
-                oldAssigneeName,
-                newAssigneeName
-        );
-    }
-
-    private void createIfChanged(
-            Ticket ticket,
-            ActivityEventCode eventCode,
-            User performedBy,
-            String oldValue,
-            String newValue
-    ) {
-        if (Objects.equals(oldValue, newValue)) {
+        if (changes.isEmpty()) {
             return;
         }
 
-        create(
-                ticket,
-                eventCode,
-                performedBy,
-                oldValue,
-                newValue
-        );
+        Set<ActivityEventCode> codes = changes.stream()
+                .map(TicketActivityChangeDetector.ActivityChange::getEventCode)
+                .collect(Collectors.toSet());
+
+        Map<ActivityEventCode, ActivityEventType> eventTypes =
+                activityEventTypeRepository.findAllByCodeIn(codes)
+                        .stream()
+                        .collect(Collectors.toMap(
+                                ActivityEventType::getCode,
+                                Function.identity()
+                        ));
+
+        List<TicketActivity> activities = changes.stream()
+                .map(change -> new TicketActivityCreateMapper().build(
+                        oldTicket,
+                        getEventType(eventTypes, change.getEventCode()),
+                        performedBy,
+                        change.getOldValue(),
+                        change.getNewValue()
+                ))
+                .toList();
+
+        ticketActivityRepository.saveAll(activities);
     }
 
-    private void createIfChanged(
-            Ticket ticket,
-            ActivityEventCode eventCode,
-            User performedBy,
-            Object oldCompareValue,
-            Object newCompareValue,
-            String oldValue,
-            String newValue
+    private ActivityEventType getEventType(
+            Map<ActivityEventCode, ActivityEventType> eventTypes,
+            ActivityEventCode eventCode
     ) {
-        if (Objects.equals(oldCompareValue, newCompareValue)) {
-            return;
+        ActivityEventType eventType = eventTypes.get(eventCode);
+        if (eventType == null) {
+            throw new ResourceNotFoundException(ActivityEventTypeMessage.NOT_FOUND);
         }
-
-        create(
-                ticket,
-                eventCode,
-                performedBy,
-                oldValue,
-                newValue
-        );
+        return eventType;
     }
 
     private void create(
