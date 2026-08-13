@@ -100,7 +100,7 @@ class TicketUpdateTest {
     @Test
     void givenValidTicket_whenUpdateTicket_thenUpdateSuccessfully() {
         given(securityHelper.getCurrentUser()).willReturn(assignee);
-        given(ticketRepository.findByIdAndArchivedFalse(ticketId))
+        given(ticketRepository.findById(ticketId))
                 .willReturn(Optional.of(oldTicket));
         given(ticketPriorityRepository.findById(priority.getId()))
                 .willReturn(Optional.of(priority));
@@ -119,7 +119,7 @@ class TicketUpdateTest {
 
     @Test
     void givenTicketNotFound_whenUpdateTicket_thenThrowResourceNotFoundException() {
-        given(ticketRepository.findByIdAndArchivedFalse(ticketId))
+        given(ticketRepository.findById(ticketId))
                 .willReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(
@@ -133,7 +133,7 @@ class TicketUpdateTest {
 
     @Test
     void givenInvalidPriority_whenUpdateTicket_thenThrowResourceNotFoundException() {
-        given(ticketRepository.findByIdAndArchivedFalse(ticketId))
+        given(ticketRepository.findById(ticketId))
                 .willReturn(Optional.of(oldTicket));
         given(ticketPriorityRepository.findById(priority.getId()))
                 .willReturn(Optional.empty());
@@ -149,7 +149,7 @@ class TicketUpdateTest {
 
     @Test
     void givenInvalidStatus_whenUpdateTicket_thenThrowResourceNotFoundException() {
-        given(ticketRepository.findByIdAndArchivedFalse(ticketId))
+        given(ticketRepository.findById(ticketId))
                 .willReturn(Optional.of(oldTicket));
         given(ticketPriorityRepository.findById(priority.getId()))
                 .willReturn(Optional.of(priority));
@@ -167,7 +167,7 @@ class TicketUpdateTest {
 
     @Test
     void givenNonExistingAssignee_whenUpdateTicket_thenThrowResourceNotFoundException() {
-        given(ticketRepository.findByIdAndArchivedFalse(ticketId))
+        given(ticketRepository.findById(ticketId))
                 .willReturn(Optional.of(oldTicket));
         given(ticketPriorityRepository.findById(priority.getId()))
                 .willReturn(Optional.of(priority));
@@ -190,7 +190,7 @@ class TicketUpdateTest {
         newTicket.setAssignee(null);
 
         given(securityHelper.getCurrentUser()).willReturn(assignee);
-        given(ticketRepository.findByIdAndArchivedFalse(ticketId))
+        given(ticketRepository.findById(ticketId))
                 .willReturn(Optional.of(oldTicket));
         given(ticketPriorityRepository.findById(priority.getId()))
                 .willReturn(Optional.of(priority));
@@ -214,7 +214,7 @@ class TicketUpdateTest {
         newTicket.setStatus(readyForQA);
 
         given(securityHelper.getCurrentUser()).willReturn(assignee);
-        given(ticketRepository.findByIdAndArchivedFalse(ticketId))
+        given(ticketRepository.findById(ticketId))
                 .willReturn(Optional.of(oldTicket));
         given(ticketPriorityRepository.findById(priority.getId()))
                 .willReturn(Optional.of(priority));
@@ -238,7 +238,7 @@ class TicketUpdateTest {
         newTicket.setStatus(readyForQA);
 
         given(securityHelper.getCurrentUser()).willReturn(assignee);
-        given(ticketRepository.findByIdAndArchivedFalse(ticketId))
+        given(ticketRepository.findById(ticketId))
                 .willReturn(Optional.of(oldTicket));
         given(ticketPriorityRepository.findById(priority.getId()))
                 .willReturn(Optional.of(priority));
@@ -258,7 +258,7 @@ class TicketUpdateTest {
         readyForQA.setName("Ready for QA");
 
         given(securityHelper.getCurrentUser()).willReturn(assignee);
-        given(ticketRepository.findByIdAndArchivedFalse(ticketId))
+        given(ticketRepository.findById(ticketId))
                 .willReturn(Optional.of(oldTicket));
         given(ticketStatusRepository.findById(readyForQA.getId()))
                 .willReturn(Optional.of(readyForQA));
@@ -276,7 +276,7 @@ class TicketUpdateTest {
         readyForQA.setName("Ready for QA");
 
         given(securityHelper.getCurrentUser()).willReturn(assignee);
-        given(ticketRepository.findByIdAndArchivedFalse(ticketId))
+        given(ticketRepository.findById(ticketId))
                 .willReturn(Optional.of(oldTicket));
         given(ticketStatusRepository.findById(readyForQA.getId()))
                 .willReturn(Optional.of(readyForQA));
@@ -298,7 +298,7 @@ class TicketUpdateTest {
         short invalidStatusId = 99;
 
         given(securityHelper.getCurrentUser()).willReturn(assignee);
-        given(ticketRepository.findByIdAndArchivedFalse(ticketId))
+        given(ticketRepository.findById(ticketId))
                 .willReturn(Optional.of(oldTicket));
         given(ticketStatusRepository.findById(invalidStatusId))
                 .willReturn(Optional.empty());
@@ -323,7 +323,7 @@ class TicketUpdateTest {
     @Test
     void givenArchivedTicket_whenUpdateTicket_thenUpdateShouldBeRejected() {
         oldTicket.setArchived(true);
-        given(ticketRepository.findByIdAndArchivedFalse(ticketId))
+        given(ticketRepository.findById(ticketId))
                 .willReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(

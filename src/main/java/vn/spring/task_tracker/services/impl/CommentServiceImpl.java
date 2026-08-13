@@ -37,7 +37,7 @@ public class CommentServiceImpl implements CommentService {
     public Comment addComment(UUID ticketId, Comment comment) {
         User currentUser = securityHelper.getCurrentUser();
 
-        Ticket ticket = ticketRepository.findByIdAndArchivedFalse(ticketId)
+        Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new ResourceNotFoundException(TicketMessage.NOT_FOUND));
 
         comment.setContent(comment.getContent().trim());

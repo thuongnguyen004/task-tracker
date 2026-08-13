@@ -10,13 +10,6 @@ import java.util.UUID;
 
 @Repository
 public interface TicketRepository extends JpaRepository<Ticket, UUID> {
-
-    Optional<Ticket> findByIdAndArchivedFalse(UUID id);
-
     List<Ticket> findByArchivedFalseOrderByUpdatedAtDesc();
-    Optional<Ticket> findByIdAndArchivedTrue(UUID id);
-
-    List<Ticket> findByArchivedFalse();
-
     List<Ticket> findByArchivedTrueOrderByUpdatedAtDesc();
 }
