@@ -23,6 +23,7 @@ import vn.spring.task_tracker.repositories.UserRepository;
 import vn.spring.task_tracker.services.TicketService;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -54,6 +55,13 @@ public class TicketServiceImpl implements TicketService {
                             new ResourceNotFoundException(UserMessage.ASSIGNEE_NOT_FOUND));
         }
 
+        Optional<Ticket> latest = ticketRepository.findTopByOrderByCreatedAtDesc();
+
+        long nextCode = latest
+                .map(t -> Long.parseLong(t.getCode().replace("TICKET-", "")) + 1)
+                .orElse(1L);
+
+        ticket.setCode(String.format("TICKET-%05d", nextCode));
         ticket.setAssignee(assignee);
         ticket.setPriority(ticketPriority);
         ticket.setStatus(ticketStatus);
@@ -65,6 +73,11 @@ public class TicketServiceImpl implements TicketService {
 
     public Ticket getActiveTicketById(UUID id) {
         return this.ticketRepository.findByIdAndArchivedFalse(id).orElseThrow(() ->
+                new ResourceNotFoundException(TicketMessage.NOT_FOUND));
+    }
+
+    public Ticket getTicketByCode(String code) {
+        return this.ticketRepository.findByCode(code).orElseThrow(() ->
                 new ResourceNotFoundException(TicketMessage.NOT_FOUND));
     }
 

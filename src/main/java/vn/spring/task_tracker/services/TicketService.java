@@ -15,4 +15,6 @@ public interface TicketService {
     Ticket changeStatusTicket(UUID ticketId, short statusId);
 
     List<Ticket> getAllActiveTickets();
+
+    Ticket getTicketByCode(String code);
 }
