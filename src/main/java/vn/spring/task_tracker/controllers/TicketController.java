@@ -132,15 +132,17 @@ public class TicketController {
     }
 
     @PatchMapping("/{ticketId}/status/{statusId}")
-    public ResponseEntity<Void> changeStatusTicket(
+    public ResponseEntity<ApiResponse<TicketResponse>> changeStatusTicket(
             @PathVariable
             UUID ticketId,
 
             @PathVariable
             short statusId
     ) {
-        ticketService.changeStatusTicket(ticketId, statusId);
+        Ticket savedTicket = ticketService.changeStatusTicket(ticketId, statusId);
 
-        return ResponseEntity.noContent().build();
+        TicketResponse ticketResponse = new TicketResponseMapper().build(savedTicket);
+
+        return ResponseEntity.ok(ApiResponse.success(TicketMessage.CHANGE_SUCCESS, ticketResponse));
     }
 }

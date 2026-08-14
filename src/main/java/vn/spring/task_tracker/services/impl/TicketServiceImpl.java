@@ -141,7 +141,7 @@ public class TicketServiceImpl implements TicketService {
         return ticketRepository.save(oldValue);
     }
 
-    public void changeStatusTicket(UUID ticketId, short statusId) {
+    public Ticket changeStatusTicket(UUID ticketId, short statusId) {
         User currentUser = securityHelper.getCurrentUser();
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new ResourceNotFoundException(TicketMessage.NOT_FOUND));
@@ -166,6 +166,6 @@ public class TicketServiceImpl implements TicketService {
 
         ticket.setStatus(ticketStatus);
 
-        ticketRepository.save(ticket);
+        return ticketRepository.save(ticket);
     }
 }
