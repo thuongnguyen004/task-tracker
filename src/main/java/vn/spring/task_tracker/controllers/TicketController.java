@@ -46,14 +46,14 @@ public class TicketController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<TicketResponse>> getActiveTicketById(
+    public ResponseEntity<ApiResponse<TicketResponse>> getTicketById(
             @PathVariable("id")
             UUID id
     ) {
 
         TicketResponseMapper ticketResponseMapper = new TicketResponseMapper();
 
-        Ticket ticket = this.ticketService.getActiveTicketById(id);
+        Ticket ticket = this.ticketService.getTicketById(id);
 
         TicketResponse ticketResponse = ticketResponseMapper.build(ticket);
 
@@ -67,21 +67,6 @@ public class TicketController {
         List<TicketResponse> ticketResponse = new TicketResponseMapper().buildList(ticket);
 
         return ResponseEntity.ok(ApiResponse.success(TicketMessage.GET_ALL_ACTIVE_SUCCESS, ticketResponse));
-    }
-
-    @GetMapping("/archives/{id}")
-    public ResponseEntity<ApiResponse<TicketResponse>> getArchiveTicketById(
-            @PathVariable("id")
-            UUID id
-    ) {
-
-        TicketResponseMapper ticketResponseMapper = new TicketResponseMapper();
-
-        Ticket ticket = this.ticketService.getArchiveTicketById(id);
-
-        TicketResponse ticketResponse = ticketResponseMapper.build(ticket);
-
-        return ResponseEntity.ok(ApiResponse.success(TicketMessage.GET_BY_ID_SUCCESS, ticketResponse));
     }
 
     @GetMapping("/archives")

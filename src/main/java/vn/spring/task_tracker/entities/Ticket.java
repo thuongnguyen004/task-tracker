@@ -24,7 +24,7 @@ public class Ticket {
     @Column(length = 150, nullable = false)
     private String title;
 
-    @Column()
+    @Column(columnDefinition = "Text")
     private String description;
 
     @Column( nullable = false, columnDefinition = "boolean default false")

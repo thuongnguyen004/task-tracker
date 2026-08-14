@@ -19,9 +19,9 @@ public class TicketResponseMapper {
                         ? ticket.getAssignee().getId()
                         : null,
                 ticket.getAssignee() != null
-                        ? ticket.getAssignee().getUsername()
+                        ? ticket.getAssignee().getFullName()
                         : null,
-                ticket.getCreatedBy().getUsername(),
+                ticket.getCreatedBy().getFullName(),
                 ticket.getCreatedAt(),
                 ticket.getUpdatedAt(),
                 ticket.isArchived()

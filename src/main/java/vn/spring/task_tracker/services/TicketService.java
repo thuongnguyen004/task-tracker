@@ -8,17 +8,15 @@ import java.util.UUID;
 public interface TicketService {
     Ticket createTicket(Ticket ticket);
 
-    Ticket getActiveTicketById(UUID id);
-
     Ticket updateTicket(UUID ticketId, Ticket ticket);
 
     void changeStatusTicket(UUID ticketId, short statusId);
 
+    Ticket getTicketById(UUID id);
+
     List<Ticket> getAllActiveTickets();
 
     List<Ticket> getAllArchiveTickets();
-
-    Ticket getArchiveTicketById(UUID id);
 
     void archiveTicket(UUID ticketId);
 
