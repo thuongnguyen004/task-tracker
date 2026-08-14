@@ -9,6 +9,7 @@ public class TicketResponseMapper {
     public TicketResponse build(Ticket ticket){
         return new TicketResponse(
                 ticket.getId(),
+                ticket.getCode(),
                 ticket.getTitle(),
                 ticket.getDescription(),
                 ticket.getPriority().getId(),
