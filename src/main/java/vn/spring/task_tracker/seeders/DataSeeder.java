@@ -83,7 +83,8 @@ public class DataSeeder implements CommandLineRunner {
                 ActivityEventCode.PRIORITY_CHANGED,
                 ActivityEventCode.TITLE_CHANGED,
                 ActivityEventCode.DESCRIPTION_CHANGED,
-                ActivityEventCode.COMMENT_ADDED
+                ActivityEventCode.COMMENT_ADDED,
+                ActivityEventCode.COMMENT_CHANGED
         );
 
         for (ActivityEventCode eventCode : defaultEventTypes) {

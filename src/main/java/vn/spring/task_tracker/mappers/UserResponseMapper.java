@@ -10,8 +10,17 @@ public class UserResponseMapper {
         return users.stream()
                 .map(user -> new UserResponse(
                         user.getId(),
+                        user.getUsername(),
                         user.getFullName()
                 ))
                 .toList();
+    }
+
+    public UserResponse build(User user) {
+        return new UserResponse(
+                user.getId(),
+                user.getUsername(),
+                user.getFullName()
+        );
     }
 }
