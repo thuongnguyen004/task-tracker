@@ -10,11 +10,13 @@ public interface TicketService {
 
     Ticket updateTicket(UUID ticketId, Ticket ticket);
 
-    void changeStatusTicket(UUID ticketId, short statusId);
+    Ticket changeStatusTicket(UUID ticketId, short statusId);
 
     Ticket getTicketById(UUID id);
 
     List<Ticket> getAllActiveTickets();
+
+    Ticket getTicketByCode(String code);
 
     List<Ticket> getAllArchiveTickets();
 

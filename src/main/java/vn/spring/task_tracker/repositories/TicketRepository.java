@@ -16,4 +16,11 @@ public interface TicketRepository extends JpaRepository<Ticket, UUID> {
 
     List<Ticket> findByArchivedTrueOrderByUpdatedAtDesc();
 
+    Optional<Ticket> findByIdAndArchivedFalse(UUID id);
+
+    List<Ticket> findByArchivedFalseOrderByUpdatedAtDesc();
+
+    Optional<Ticket> findTopByOrderByCreatedAtDesc();
+
+    Optional<Ticket> findByCode(String code);
 }

@@ -60,6 +60,21 @@ public class TicketController {
         return ResponseEntity.ok(ApiResponse.success(TicketMessage.GET_BY_ID_SUCCESS, ticketResponse));
     }
 
+    @GetMapping("/code/{code}")
+    public ResponseEntity<ApiResponse<TicketResponse>> getTicketByCode(
+            @PathVariable("code")
+            String code
+    ) {
+
+        TicketResponseMapper ticketResponseMapper = new TicketResponseMapper();
+
+        Ticket ticket = this.ticketService.getTicketByCode(code);
+
+        TicketResponse ticketResponse = ticketResponseMapper.build(ticket);
+
+        return ResponseEntity.ok(ApiResponse.success(TicketMessage.GET_BY_CODE_SUCCESS, ticketResponse));
+    }
+
     @GetMapping()
     public ResponseEntity<ApiResponse<List<TicketResponse>>> getAllActiveTickets() {
         List<Ticket> ticket = ticketService.getAllActiveTickets();
@@ -117,15 +132,17 @@ public class TicketController {
     }
 
     @PatchMapping("/{ticketId}/status/{statusId}")
-    public ResponseEntity<Void> changeStatusTicket(
+    public ResponseEntity<ApiResponse<TicketResponse>> changeStatusTicket(
             @PathVariable
             UUID ticketId,
 
             @PathVariable
             short statusId
     ) {
-        ticketService.changeStatusTicket(ticketId, statusId);
+        Ticket savedTicket = ticketService.changeStatusTicket(ticketId, statusId);
 
-        return ResponseEntity.noContent().build();
+        TicketResponse ticketResponse = new TicketResponseMapper().build(savedTicket);
+
+        return ResponseEntity.ok(ApiResponse.success(TicketMessage.CHANGE_SUCCESS, ticketResponse));
     }
 }

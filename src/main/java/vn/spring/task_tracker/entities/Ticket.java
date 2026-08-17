@@ -21,6 +21,9 @@ public class Ticket {
     @Column(columnDefinition = "uuid", updatable = false, nullable = false)
     private UUID id;
 
+    @Column(name = "code", unique = true, nullable = false, length = 20)
+    private String code;
+
     @Column(length = 150, nullable = false)
     private String title;
 
