@@ -30,14 +30,13 @@ public class RefreshTokenService {
 
         long now = System.currentTimeMillis();
 
-        RefreshToken refreshToken = RefreshToken.builder()
-                .token(hash(token))
-                .user(user)
-                .revoked(false)
-                .expiredAt(now + jwtProperties.getRefreshTokenExpiration().toMillis())
-                .createdAt(now)
-                .updatedAt(now)
-                .build();
+        RefreshToken refreshToken = new RefreshToken();
+        refreshToken.setToken(hash(token));
+        refreshToken.setUser(user);
+        refreshToken.setRevoked(false);
+        refreshToken.setExpiredAt(now + jwtProperties.getRefreshTokenExpiration().toMillis());
+        refreshToken.setCreatedAt(now);
+        refreshToken.setUpdatedAt(now);
 
         refreshTokenRepository.save(refreshToken);
     }
