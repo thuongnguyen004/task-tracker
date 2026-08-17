@@ -12,4 +12,8 @@ import java.util.UUID;
 public interface TicketRepository extends JpaRepository<Ticket, UUID> {
     List<Ticket> findByArchivedFalseOrderByUpdatedAtDesc();
     List<Ticket> findByArchivedTrueOrderByUpdatedAtDesc();
+
+    Optional<Ticket> findTopByOrderByCreatedAtDesc();
+
+    Optional<Ticket> findByCode(String code);
 }

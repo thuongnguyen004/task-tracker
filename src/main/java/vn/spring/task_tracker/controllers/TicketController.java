@@ -60,6 +60,21 @@ public class TicketController {
         return ResponseEntity.ok(ApiResponse.success(TicketMessage.GET_BY_ID_SUCCESS, ticketResponse));
     }
 
+    @GetMapping("/code/{code}")
+    public ResponseEntity<ApiResponse<TicketResponse>> getTicketByCode(
+            @PathVariable("code")
+            String code
+    ) {
+
+        TicketResponseMapper ticketResponseMapper = new TicketResponseMapper();
+
+        Ticket ticket = this.ticketService.getTicketByCode(code);
+
+        TicketResponse ticketResponse = ticketResponseMapper.build(ticket);
+
+        return ResponseEntity.ok(ApiResponse.success(TicketMessage.GET_BY_CODE_SUCCESS, ticketResponse));
+    }
+
     @GetMapping()
     public ResponseEntity<ApiResponse<List<TicketResponse>>> getAllActiveTickets() {
         List<Ticket> ticket = ticketService.getAllActiveTickets();

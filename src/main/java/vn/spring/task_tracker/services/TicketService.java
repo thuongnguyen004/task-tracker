@@ -24,4 +24,5 @@ public interface TicketService {
 
     void restoreTicket(UUID ticketId);
 
+    Ticket getTicketByCode(String code);
 }

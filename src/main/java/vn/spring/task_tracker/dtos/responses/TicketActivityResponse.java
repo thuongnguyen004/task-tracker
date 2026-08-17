@@ -17,6 +17,8 @@ public class TicketActivityResponse {
 
     private UUID ticketId;
 
+    private String ticketCode;
+
     private String title;
 
     private String oldValue;
