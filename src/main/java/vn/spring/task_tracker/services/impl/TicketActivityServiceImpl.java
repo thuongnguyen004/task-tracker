@@ -40,6 +40,12 @@ public class TicketActivityServiceImpl implements TicketActivityService {
     }
 
     @Override
+    public Page<TicketActivity> getTicketActivity(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return ticketActivityRepository.findAllByOrderByCreatedAtDesc(pageable);
+    }
+
+    @Override
     public void createTicketActivity(
             Ticket ticket,
             ActivityEventCode eventCode,

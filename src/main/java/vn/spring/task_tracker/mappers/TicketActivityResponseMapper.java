@@ -11,6 +11,9 @@ public class TicketActivityResponseMapper {
     public TicketActivityResponse build(TicketActivity ticketActivity) {
         return new TicketActivityResponse(
                 ticketActivity.getId(),
+                ticketActivity.getTicket().getId(),
+                ticketActivity.getTicket().getCode(),
+                ticketActivity.getTicket().getTitle(),
                 ticketActivity.getOldValue(),
                 ticketActivity.getNewValue(),
                 ticketActivity.getCreatedAt(),

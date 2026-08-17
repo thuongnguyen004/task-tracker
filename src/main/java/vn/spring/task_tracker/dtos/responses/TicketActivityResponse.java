@@ -15,6 +15,12 @@ import java.util.UUID;
 public class TicketActivityResponse {
     private UUID id;
 
+    private UUID ticketId;
+
+    private String ticketCode;
+
+    private String title;
+
     private String oldValue;
 
     private String newValue;

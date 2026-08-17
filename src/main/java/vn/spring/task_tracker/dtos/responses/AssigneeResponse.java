@@ -13,5 +13,5 @@ import java.util.UUID;
 @AllArgsConstructor
 public class AssigneeResponse {
     private UUID id;
-    private String username;
+    private String fullName;
 }
