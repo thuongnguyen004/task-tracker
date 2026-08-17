@@ -8,12 +8,14 @@ import vn.spring.task_tracker.constants.TicketMessage;
 import vn.spring.task_tracker.entities.Comment;
 import vn.spring.task_tracker.entities.Ticket;
 import vn.spring.task_tracker.entities.User;
+import vn.spring.task_tracker.enums.ActivityEventCode;
 import vn.spring.task_tracker.exceptions.ForbiddenException;
 import vn.spring.task_tracker.exceptions.ResourceNotFoundException;
 import vn.spring.task_tracker.helpers.SecurityHelper;
 import vn.spring.task_tracker.repositories.CommentRepository;
 import vn.spring.task_tracker.repositories.TicketRepository;
 import vn.spring.task_tracker.services.CommentService;
+import vn.spring.task_tracker.services.TicketActivityService;
 
 import java.util.List;
 import java.util.UUID;
@@ -28,6 +30,8 @@ public class CommentServiceImpl implements CommentService {
 
     private final SecurityHelper securityHelper;
 
+    private final TicketActivityService ticketActivityService;
+
     @Override
     @Transactional
     public Comment addComment(UUID ticketId, Comment comment) {
@@ -39,6 +43,8 @@ public class CommentServiceImpl implements CommentService {
         comment.setContent(comment.getContent().trim());
         comment.setTicket(ticket);
         comment.setCreatedBy(currentUser);
+
+        ticketActivityService.createTicketActivity(ticket, ActivityEventCode.COMMENT_ADDED, currentUser, null, comment.getContent());
 
         return commentRepository.save(comment);
     }
@@ -62,6 +68,10 @@ public class CommentServiceImpl implements CommentService {
 
         if (!existingComment.getCreatedBy().getId().equals(currentUser.getId())) {
             throw new ForbiddenException(CommentMessage.FORBIDDEN_EDIT);
+        }
+
+        if(!existingComment.getContent().equals(comment.getContent().trim())) {
+            ticketActivityService.createTicketActivity(existingComment.getTicket(), ActivityEventCode.COMMENT_CHANGED, currentUser, existingComment.getContent(), comment.getContent());
         }
 
         existingComment.setContent(comment.getContent().trim());

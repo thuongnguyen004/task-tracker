@@ -8,5 +8,6 @@ public enum ActivityEventCode {
     PRIORITY_CHANGED,
     TITLE_CHANGED,
     DESCRIPTION_CHANGED,
-    COMMENT_ADDED
+    COMMENT_ADDED,
+    COMMENT_CHANGED
 }

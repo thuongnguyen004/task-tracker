@@ -8,8 +8,6 @@ import java.util.UUID;
 public interface TicketService {
     Ticket createTicket(Ticket ticket);
 
-    Ticket getActiveTicketById(UUID id);
-
     Ticket updateTicket(UUID ticketId, Ticket ticket);
 
     Ticket changeStatusTicket(UUID ticketId, short statusId);

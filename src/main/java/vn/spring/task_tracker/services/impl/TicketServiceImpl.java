@@ -1,35 +1,26 @@
 package vn.spring.task_tracker.services.impl;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import vn.spring.task_tracker.entities.*;
+import vn.spring.task_tracker.enums.ActivityEventCode;
 import vn.spring.task_tracker.exceptions.ResourceNotFoundException;
 import vn.spring.task_tracker.helpers.SecurityHelper;
 import vn.spring.task_tracker.repositories.*;
-import vn.spring.task_tracker.services.TicketActivityService;
 import vn.spring.task_tracker.constants.TicketMessage;
 import vn.spring.task_tracker.constants.TicketPriorityMessage;
 import vn.spring.task_tracker.constants.TicketStatusMessage;
 import vn.spring.task_tracker.constants.UserMessage;
-import vn.spring.task_tracker.entities.Ticket;
-import vn.spring.task_tracker.entities.TicketPriority;
-import vn.spring.task_tracker.entities.TicketStatus;
-import vn.spring.task_tracker.entities.User;
-import vn.spring.task_tracker.exceptions.ResourceNotFoundException;
-import vn.spring.task_tracker.helpers.SecurityHelper;
 import vn.spring.task_tracker.mappers.TicketUpdateMapper;
-import vn.spring.task_tracker.repositories.TicketPriorityRepository;
-import vn.spring.task_tracker.repositories.TicketRepository;
-import vn.spring.task_tracker.repositories.TicketStatusRepository;
-import vn.spring.task_tracker.repositories.UserRepository;
 import vn.spring.task_tracker.services.TicketActivityService;
 import vn.spring.task_tracker.services.TicketService;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+import vn.spring.task_tracker.entities.Ticket;
+import vn.spring.task_tracker.entities.TicketPriority;
+import vn.spring.task_tracker.entities.TicketStatus;
+import vn.spring.task_tracker.entities.User;
 
 @Service
 @RequiredArgsConstructor
@@ -72,12 +63,11 @@ public class TicketServiceImpl implements TicketService {
         ticket.setAssignee(assignee);
         ticket.setCreatedBy(currentUser);
 
-        return this.ticketRepository.save(ticket);
-    }
+        Ticket savedTicket = ticketRepository.save(ticket);
 
-    public Ticket getActiveTicketById(UUID id) {
-        return this.ticketRepository.findByIdAndArchivedFalse(id).orElseThrow(() ->
-                new ResourceNotFoundException(TicketMessage.NOT_FOUND));
+        ticketActivityService.createTicketActivity(savedTicket, ActivityEventCode.TICKET_CREATED, currentUser,null, null);
+
+        return savedTicket;
     }
 
     public Ticket getTicketByCode(String code) {
@@ -114,66 +104,20 @@ public class TicketServiceImpl implements TicketService {
         );
     }
 
-    public Ticket updateTicket(UUID ticketId, Ticket ticket) {
-        Ticket oldValue = ticketRepository
-            .findByIdAndArchivedFalse(ticketId)
-            .orElseThrow(() ->
-                new ResourceNotFoundException(TicketMessage.NOT_FOUND)
-            );
-
-        ticketPriorityRepository
-            .findById(ticket.getPriority().getId())
-            .orElseThrow(() ->
-                new ResourceNotFoundException(TicketPriorityMessage.NOT_FOUND)
-            );
-
-        ticketStatusRepository
-            .findById(ticket.getStatus().getId())
-            .orElseThrow(() ->
-                new ResourceNotFoundException(TicketStatusMessage.NOT_FOUND)
-            );
-
-        if (ticket.getAssignee() != null) {
-            userRepository
-                .findById(ticket.getAssignee().getId())
-                .orElseThrow(() ->
-                    new ResourceNotFoundException(UserMessage.NOT_FOUND)
-                );
-        }
-
-        new TicketUpdateMapper().update(oldValue, ticket);
-
-        return ticketRepository.save(oldValue);
-    }
-
-    public Ticket changeStatusTicket(UUID ticketId, short statusId) {
-        Ticket ticket = ticketRepository
-            .findByIdAndArchivedFalse(ticketId)
-            .orElseThrow(() ->
-                new ResourceNotFoundException(TicketMessage.NOT_FOUND)
-            );
-
-        TicketStatus ticketStatus = ticketStatusRepository
-            .findById(statusId)
-            .orElseThrow(() ->
-                new ResourceNotFoundException(TicketStatusMessage.NOT_FOUND)
-            );
-
-        ticket.setStatus(ticketStatus);
-
-        return ticketRepository.save(ticket);
-    }
-
     public List<Ticket> getAllArchiveTickets() {
         return ticketRepository.findByArchivedTrueOrderByUpdatedAtDesc();
     }
 
     public void archiveTicket(UUID ticketId) {
-        Ticket ticket = ticketRepository.findById(ticketId)
+        User currentUser = securityHelper.getCurrentUser();
+
+        Ticket ticket = ticketRepository.findByIdAndArchivedFalse(ticketId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(TicketMessage.NOT_FOUND));
 
         ticket.setArchived(true);
+
+        ticketActivityService.createTicketActivity(ticket, ActivityEventCode.TICKET_ARCHIVED, currentUser, null,null);
 
         ticketRepository.save(ticket);
     }
@@ -186,5 +130,65 @@ public class TicketServiceImpl implements TicketService {
         ticket.setArchived(false);
 
         ticketRepository.save(ticket);
+    }
+
+    public Ticket updateTicket(UUID ticketId, Ticket ticket) {
+        User currentUser = securityHelper.getCurrentUser();
+
+        Ticket oldValue = ticketRepository.findByIdAndArchivedFalse(ticketId)
+                .orElseThrow(() -> new ResourceNotFoundException(TicketMessage.NOT_FOUND));
+
+        TicketPriority ticketPriority = ticketPriorityRepository.findById(ticket.getPriority().getId())
+                .orElseThrow(() -> new ResourceNotFoundException(TicketPriorityMessage.NOT_FOUND));
+
+        TicketStatus ticketStatus = ticketStatusRepository.findById(ticket.getStatus().getId())
+                .orElseThrow(() -> new ResourceNotFoundException(TicketStatusMessage.NOT_FOUND));
+
+        User assignee = ticket.getAssignee() == null ? null : userRepository.findById(ticket.getAssignee().getId())
+                .orElseThrow(() -> new ResourceNotFoundException(UserMessage.NOT_FOUND));
+
+        ticket.setPriority(ticketPriority);
+
+        ticket.setStatus(ticketStatus);
+
+        ticket.setAssignee(assignee);
+
+        ticketActivityService.createTicketActivity(
+                oldValue,
+                ticket,
+                currentUser
+        );
+
+        new TicketUpdateMapper().update(oldValue, ticket);
+
+        return ticketRepository.save(oldValue);
+    }
+
+    public Ticket changeStatusTicket(UUID ticketId, short statusId) {
+        User currentUser = securityHelper.getCurrentUser();
+        Ticket ticket = ticketRepository.findByIdAndArchivedFalse(ticketId)
+                .orElseThrow(() -> new ResourceNotFoundException(TicketMessage.NOT_FOUND));
+
+        TicketStatus ticketStatus = ticketStatusRepository.findById(statusId)
+                .orElseThrow(() -> new ResourceNotFoundException(TicketStatusMessage.NOT_FOUND));
+
+        Ticket newTicket = new Ticket(
+                ticket.getTitle(),
+                ticket.getDescription(),
+                ticket.getPriority(),
+                ticketStatus,
+                ticket.getAssignee()
+
+        );
+
+        ticketActivityService.createTicketActivity(
+                ticket,
+                newTicket,
+                currentUser
+        );
+
+        ticket.setStatus(ticketStatus);
+
+        return ticketRepository.save(ticket);
     }
 }

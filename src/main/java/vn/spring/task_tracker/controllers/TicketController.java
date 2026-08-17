@@ -45,23 +45,6 @@ public class TicketController {
                 .body(ApiResponse.created(TicketMessage.CREATE_SUCCESS, ticketResponse));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<TicketResponse>> getActiveTicketById(
-            @PathVariable("id")
-            UUID id
-    ) {
-
-        TicketResponseMapper ticketResponseMapper = new TicketResponseMapper();
-
-        Ticket ticket = this.ticketService.getActiveTicketById(id);
-
-        TicketResponse ticketResponse = ticketResponseMapper.build(ticket);
-
-        return ResponseEntity.ok(
-            ApiResponse.success(TicketMessage.GET_BY_ID_SUCCESS, ticketResponse)
-        );
-    }
-
     @GetMapping("/code/{code}")
     public ResponseEntity<ApiResponse<TicketResponse>> getTicketByCode(
             @PathVariable("code")
