@@ -1,8 +1,6 @@
 package vn.spring.task_tracker.controllers;
 
 import jakarta.validation.Valid;
-import java.util.List;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +14,10 @@ import vn.spring.task_tracker.entities.Ticket;
 import vn.spring.task_tracker.mappers.TicketCreateMapper;
 import vn.spring.task_tracker.mappers.TicketResponseMapper;
 import vn.spring.task_tracker.mappers.TicketUpdateMapper;
-import vn.spring.task_tracker.services.TicketService;
+import vn.spring.task_tracker.services.*;
+
+import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -27,7 +28,9 @@ public class TicketController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<TicketResponse>> createTicket(
-        @Valid @RequestBody TicketCreateRequest ticketCreateRequest
+            @Valid
+            @RequestBody
+            TicketCreateRequest ticketCreateRequest
     ) {
         TicketCreateMapper ticketMapper = new TicketCreateMapper();
         TicketResponseMapper ticketResponseMapper = new TicketResponseMapper();
@@ -38,15 +41,16 @@ public class TicketController {
 
         TicketResponse ticketResponse = ticketResponseMapper.build(newTicket);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(
-            ApiResponse.created(TicketMessage.CREATE_SUCCESS, ticketResponse)
-        );
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.created(TicketMessage.CREATE_SUCCESS, ticketResponse));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<TicketResponse>> getActiveTicketById(
-        @PathVariable("id") UUID id
+            @PathVariable("id")
+            UUID id
     ) {
+
         TicketResponseMapper ticketResponseMapper = new TicketResponseMapper();
 
         Ticket ticket = this.ticketService.getActiveTicketById(id);
@@ -141,5 +145,34 @@ public class TicketController {
         TicketResponse ticketResponse = new TicketResponseMapper().build(savedTicket);
 
         return ResponseEntity.ok(ApiResponse.success(TicketMessage.CHANGE_SUCCESS, ticketResponse));
+    }
+
+    @GetMapping("/archives")
+    public ResponseEntity<ApiResponse<List<TicketResponse>>> getAllArchiveTickets() {
+        List<Ticket> ticket = ticketService.getAllArchiveTickets();
+
+        List<TicketResponse> ticketResponse = new TicketResponseMapper().buildList(ticket);
+
+        return ResponseEntity.ok(ApiResponse.success(TicketMessage.GET_ALL_ARCHIVE_SUCCESS, ticketResponse));
+    }
+
+    @PatchMapping("/{id}/archive")
+    public ResponseEntity<Void> archiveTicket(
+            @PathVariable
+            UUID id
+    ) {
+        ticketService.archiveTicket(id);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/restore")
+    public ResponseEntity<Void> restoreTicket(
+            @PathVariable
+            UUID id
+    ) {
+        ticketService.restoreTicket(id);
+
+        return ResponseEntity.noContent().build();
     }
 }

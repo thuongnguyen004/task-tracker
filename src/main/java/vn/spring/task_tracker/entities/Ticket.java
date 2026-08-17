@@ -15,16 +15,9 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-
 public class Ticket {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @SequenceGenerator(
-            name = "tk_code_seq_gen",
-            sequenceName = "ticket_code_seq",
-            initialValue = 1,
-            allocationSize = 1
-    )
     @Column(columnDefinition = "uuid", updatable = false, nullable = false)
     private UUID id;
 
