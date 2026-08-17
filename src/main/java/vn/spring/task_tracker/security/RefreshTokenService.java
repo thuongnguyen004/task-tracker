@@ -28,6 +28,7 @@ public class RefreshTokenService {
 
         long now = System.currentTimeMillis();
         RefreshToken refreshToken = new RefreshToken();
+
         refreshToken.setToken(hash(token));
         refreshToken.setUser(user);
         refreshToken.setRevoked(false);
