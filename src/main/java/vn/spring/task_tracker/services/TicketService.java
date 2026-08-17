@@ -1,9 +1,8 @@
 package vn.spring.task_tracker.services;
 
-import vn.spring.task_tracker.entities.Ticket;
-
 import java.util.List;
 import java.util.UUID;
+import vn.spring.task_tracker.entities.Ticket;
 
 public interface TicketService {
     Ticket createTicket(Ticket ticket);
@@ -17,4 +16,11 @@ public interface TicketService {
     List<Ticket> getAllActiveTickets();
 
     Ticket getTicketByCode(String code);
+
+    List<Ticket> findWithFilters(
+        String title,
+        List<Short> priorityIds,
+        UUID assigneeId,
+        boolean unassigned
+    );
 }
