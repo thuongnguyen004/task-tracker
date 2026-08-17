@@ -30,12 +30,12 @@ public class AuthMapper {
     }
 
     public LoginResponse toLoginResponse(User user, String accessToken) {
-        return LoginResponse.builder()
-                .id(user.getId())
-                .username(user.getUsername())
-                .email(user.getEmail())
-                .accessToken(accessToken)
-                .build();
+        return new LoginResponse(
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                accessToken
+        );
     }
 
     public UserProfileResponse toUserProfileResponse(User user) {
