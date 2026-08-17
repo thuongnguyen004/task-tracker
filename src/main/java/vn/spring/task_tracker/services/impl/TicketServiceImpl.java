@@ -132,10 +132,10 @@ public class TicketServiceImpl implements TicketService {
         ticketRepository.save(ticket);
     }
 
-    public Ticket updateTicket(UUID ticketId, Ticket ticket) {
+    public Ticket updateTicket(String code, Ticket ticket) {
         User currentUser = securityHelper.getCurrentUser();
 
-        Ticket oldValue = ticketRepository.findById(ticketId)
+        Ticket oldValue = ticketRepository.findByCode(code)
                 .orElseThrow(() -> new ResourceNotFoundException(TicketMessage.NOT_FOUND));
 
         TicketPriority ticketPriority = ticketPriorityRepository.findById(ticket.getPriority().getId())

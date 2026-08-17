@@ -12,7 +12,7 @@ import java.util.UUID;
 
 @Repository
 public interface TicketActivityRepository extends JpaRepository<TicketActivity, UUID> {
-    Page<TicketActivity> findByTicket_IdOrderByCreatedAtDesc(UUID ticketId, Pageable pageable);
+    Page<TicketActivity> findByTicket_CodeOrderByCreatedAtDesc(String code, Pageable pageable);
 
     Page<TicketActivity> findAllByOrderByCreatedAtDesc(Pageable pageable);
 }

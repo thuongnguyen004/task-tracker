@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface TicketActivityService {
-    Page<TicketActivity> getTicketActivityByIdTicket(UUID ticketId, int page, int size);
+    Page<TicketActivity> getTicketActivityByTicketCode(String code, int page, int size);
     Page<TicketActivity> getTicketActivity(int page, int size);
     void createTicketActivity(Ticket ticket, ActivityEventCode eventCode, User performedBy, String oldValue, String newValue);
     void createTicketActivity(Ticket oldTicket, Ticket newTicket, User performedBy);

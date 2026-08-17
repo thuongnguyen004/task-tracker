@@ -100,14 +100,14 @@ public class TicketController {
         );
     }
 
-    @PutMapping("/{ticketId}")
+    @PutMapping("/{code}")
     public ResponseEntity<ApiResponse<TicketResponse>> updateTicket(
-        @PathVariable UUID ticketId,
+        @PathVariable String code,
         @Valid @RequestBody TicketUpdateRequest ticketUpdateRequest
     ) {
         Ticket ticket = new TicketUpdateMapper().build(ticketUpdateRequest);
 
-        Ticket savedTicket = ticketService.updateTicket(ticketId, ticket);
+        Ticket savedTicket = ticketService.updateTicket(code, ticket);
 
         TicketResponse ticketResponse = new TicketResponseMapper().build(
             savedTicket

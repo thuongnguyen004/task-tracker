@@ -34,9 +34,9 @@ public class TicketActivityServiceImpl implements TicketActivityService {
     private final TicketActivityChangeDetector changeDetector;
 
     @Override
-    public Page<TicketActivity> getTicketActivityByIdTicket(UUID ticketId, int page, int size) {
+    public Page<TicketActivity> getTicketActivityByTicketCode(String code, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return ticketActivityRepository.findByTicket_IdOrderByCreatedAtDesc(ticketId, pageable);
+        return ticketActivityRepository.findByTicket_CodeOrderByCreatedAtDesc(code, pageable);
     }
 
     @Override

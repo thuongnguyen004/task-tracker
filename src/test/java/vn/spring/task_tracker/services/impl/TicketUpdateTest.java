@@ -87,6 +87,9 @@ class TicketUpdateTest {
                 assignee
         );
         oldTicket.setId(ticketId);
+        oldTicket.setCode("TICKET-00001");
+        given(ticketRepository.findByCode("TICKET-00001"))
+                .willReturn(Optional.of(oldTicket));
 
         newTicket = new Ticket(
                 "New title",
@@ -111,7 +114,7 @@ class TicketUpdateTest {
         given(ticketRepository.save(any(Ticket.class)))
                 .willAnswer(invocation -> invocation.getArgument(0));
 
-        Ticket result = ticketService.updateTicket(ticketId, newTicket);
+        Ticket result = ticketService.updateTicket("TICKET-00001", newTicket);
 
         assertThat(result.getTitle()).isEqualTo("New title");
         assertThat(result.getDescription()).isEqualTo("New description");
@@ -119,12 +122,12 @@ class TicketUpdateTest {
 
     @Test
     void givenTicketNotFound_whenUpdateTicket_thenThrowResourceNotFoundException() {
-        given(ticketRepository.findById(ticketId))
+        given(ticketRepository.findByCode("TICKET-00001"))
                 .willReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(
                 ResourceNotFoundException.class,
-                () -> ticketService.updateTicket(ticketId, newTicket)
+                () -> ticketService.updateTicket("TICKET-00001", newTicket)
         );
 
         assertThat(exception.getMessage()).isEqualTo("Ticket not found.");
@@ -140,7 +143,7 @@ class TicketUpdateTest {
 
         ResourceNotFoundException exception = assertThrows(
                 ResourceNotFoundException.class,
-                () -> ticketService.updateTicket(ticketId, newTicket)
+                () -> ticketService.updateTicket("TICKET-00001", newTicket)
         );
 
         assertThat(exception.getMessage()).isEqualTo("Ticket priority not found.");
@@ -158,7 +161,7 @@ class TicketUpdateTest {
 
         ResourceNotFoundException exception = assertThrows(
                 ResourceNotFoundException.class,
-                () -> ticketService.updateTicket(ticketId, newTicket)
+                () -> ticketService.updateTicket("TICKET-00001", newTicket)
         );
 
         assertThat(exception.getMessage()).isEqualTo("Ticket status not found.");
@@ -178,7 +181,7 @@ class TicketUpdateTest {
 
         ResourceNotFoundException exception = assertThrows(
                 ResourceNotFoundException.class,
-                () -> ticketService.updateTicket(ticketId, newTicket)
+                () -> ticketService.updateTicket("TICKET-00001", newTicket)
         );
 
         assertThat(exception.getMessage()).isEqualTo("User not found.");
@@ -199,7 +202,7 @@ class TicketUpdateTest {
         given(ticketRepository.save(any(Ticket.class)))
                 .willAnswer(invocation -> invocation.getArgument(0));
 
-        Ticket result = ticketService.updateTicket(ticketId, newTicket);
+        Ticket result = ticketService.updateTicket("TICKET-00001", newTicket);
 
         assertThat(result.getAssignee()).isNull();
     }
@@ -225,7 +228,7 @@ class TicketUpdateTest {
         given(ticketRepository.save(any(Ticket.class)))
                 .willAnswer(invocation -> invocation.getArgument(0));
 
-        Ticket result = ticketService.updateTicket(ticketId, newTicket);
+        Ticket result = ticketService.updateTicket("TICKET-00001", newTicket);
 
         assertThat(result.getStatus().getName()).isEqualTo("Ready for QA");
     }
@@ -248,7 +251,7 @@ class TicketUpdateTest {
         given(ticketRepository.save(any(Ticket.class)))
                 .willAnswer(invocation -> invocation.getArgument(0));
 
-        ticketService.updateTicket(ticketId, newTicket);
+        ticketService.updateTicket("TICKET-00001", newTicket);
     }
 
     @Test
@@ -323,12 +326,12 @@ class TicketUpdateTest {
     @Test
     void givenArchivedTicket_whenUpdateTicket_thenUpdateShouldBeRejected() {
         oldTicket.setArchived(true);
-        given(ticketRepository.findById(ticketId))
+        given(ticketRepository.findByCode("TICKET-00001"))
                 .willReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(
                 ResourceNotFoundException.class,
-                () -> ticketService.updateTicket(ticketId, newTicket)
+                () -> ticketService.updateTicket("TICKET-00001", newTicket)
         );
 
         assertThat(exception.getMessage()).isEqualTo("Ticket not found.");

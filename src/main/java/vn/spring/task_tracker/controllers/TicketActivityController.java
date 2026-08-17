@@ -22,9 +22,9 @@ public class TicketActivityController {
 
     private final TicketActivityService ticketActivityService;
 
-    @GetMapping("/{ticketId}")
-    public ResponseEntity<ApiResponse<PageResponse<TicketActivityResponse>>> getTicketActivityByIdTicket(@PathVariable UUID ticketId, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
-        Page<TicketActivity> ticketActivities = ticketActivityService.getTicketActivityByIdTicket(ticketId, page, size);
+    @GetMapping("/{code}")
+    public ResponseEntity<ApiResponse<PageResponse<TicketActivityResponse>>> getTicketActivityByTicketCode(@PathVariable String code, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
+        Page<TicketActivity> ticketActivities = ticketActivityService.getTicketActivityByTicketCode(code, page, size);
 
         PageResponse<TicketActivityResponse> response = new TicketActivityResponseMapper().buildList(ticketActivities);
 
