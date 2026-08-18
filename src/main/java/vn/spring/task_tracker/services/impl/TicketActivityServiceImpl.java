@@ -20,7 +20,6 @@ import vn.spring.task_tracker.services.TicketActivityService;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -71,9 +70,9 @@ public class TicketActivityServiceImpl implements TicketActivityService {
             return;
         }
 
-        Set<ActivityEventCode> codes = changes.stream()
+        List<ActivityEventCode> codes = changes.stream()
                 .map(TicketActivityChangeDetector.ActivityChange::getEventCode)
-                .collect(Collectors.toSet());
+                .toList();
 
         Map<ActivityEventCode, ActivityEventType> eventTypes =
                 activityEventTypeRepository.findAllByCodeIn(codes)
